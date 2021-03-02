@@ -4,40 +4,42 @@
 #Feb 2021
 #===================================
 rm(list=ls())
-# library(FLCore)
-# library(FLasher)
-# library(FLBRP)
-# library(FLife)
-# library(plyr)
-# library(reshape)
-# #library(ggplotFL)
-# library(sbar)
-# library(doParallel)
-# library(TMBhelper)
+library(FLCore)
+library(FLasher)
+library(FLBRP)
+library(FLife)
+library(plyr)
+library(reshape)
+#library(ggplotFL)
+library(sbar)
+library(doParallel)
+#library(TMBhelper)
 
 setwd("C:/Users/LukeB/Documents/sim_sbar")
 
+
 #load function to create stocks
 source("par_setup.R")
-#source("funs.R")
-par(mfrow = c(2,1))
-lapply(sce_ls$sel$her[2:3],function(x){
-  
-  plot(c(unlist(x))~c(0:8),type="b",col=2)  
-  
-})
+source("funs.R")
+# par(mfrow = c(2,1))
+# lapply(sce_ls$sel$her[2:3],function(x){
+#   
+#   plot(c(unlist(x))~c(0:8),type="b",col=2)  
+#   
+# })
 
 sce_ls$nm$mon$gis
 sce_ls$nm$her$gis
 
 sce <- expand.grid(lh = c("mon","her"), ts = c("short","long"), sel = c("kn0","logistic","dome"), nm = c("cons", "gislason"), ar =c ("nocor","0.6rho"), sr = c("recsd0.1","recsd0.4") )
 #stk_sel <- sce_ls$sel[[which(sapply(names(sce_ls$sel), function(y) fish %in% y))]]
+
 dim(sce)
- iters<- 100
+ iters<- 5
  timing<-0
 
  cores=detectCores()
- cl <- makeCluster(cores[1]-1,outfile= "Log.txt") #not to overload your computer
+ cl <- makeCluster(cores[1]-1,outfile= "Log.txt") #not to overload your computer, ,outfile= "Log.txt" if you want log of whats going on
  registerDoParallel(cl)
  seedlist <- seq(from = 100,by = 50,length.out = dim(sce)[1])
  clusterExport(cl, 'seedlist')
@@ -46,8 +48,8 @@ st<-NA
 st[1]<-Sys.time()
 
 #  #
-#dim(sce)[1]
- tmpres<-foreach(i=1:10,.packages = (.packages())) %dopar% {#   ,.combine=cbind
+#
+ tmpres<-foreach(i=1:dim(sce)[1], .packages = (.packages())) %dopar% {#   ,.combine=cbind
    set.seed(seedlist[i]) 
    lh<-sce$lh[i]
   stk_par<-sce_ls$lh[[lh]]
@@ -181,37 +183,36 @@ st[1]<-Sys.time()
  
  (st[2]-st[1])/60
 
- #save(tmpres,file="res2.RData")
- #save(tmpres,file="res_1to10iters_parallel.RData")
- #save(res,file="res1.RData")
- #save(res,file="res2.RData")
  
+ #save(tmpres,sce,file="res_5iters_allsce.RData")
  
- 
- rm(list=ls())
- load("res1to10_notpar.Rdata")
- load("res_1to10iters_parallel.Rdata")
- ls()
- 
- jeff[[10]]$scenario
- tmpres[[10]]$scenario
- 
- 
- jeff[[1]]$stk_c$mwts[,,10]-tmpres[[1]]$stk_c$mwts[,,10]#  same 
- jeff[[5]]$stk_c$mwts[,,98]-tmpres[[5]]$stk_c$mwts[,,98]#  same 
- 
- 
- 
- jeff[[1]]$stk_c$stk@catch.n[3,7]
- tmpres[[1]]$stk_c$stk@catch.n[3,7]
- 
- 
- rec(iter(jeff[[1]]$stk_c$stk,7))- rec(iter(tmpres[[1]]$stk_c$stk,7))
- 
- tmpres[[1]]$stk_c$schnualt_par[,,1]
- tmpres[[5]]$stk_rc$schnualt_par[,,4]
- tmpres[[5]]$stk_rc$csa_par
- tmpres[[1]]$stk_rc$schnub0_par[1,1,]
- tmpres[[5]]$stk_rc$schnualt_par[1,1,]
- 
+ # 
+ # 
+ # 
+ # rm(list=ls())
+ # #load("res1to10_notpar.Rdata")
+ # #load("res_1to10iters_parallel.Rdata")
+ # ls()
+ # 
+ # jeff[[10]]$scenario
+ # tmpres[[10]]$scenario
+ # 
+ # 
+ # jeff[[1]]$stk_c$mwts[,,10]-tmpres[[1]]$stk_c$mwts[,,10]#  same 
+ # jeff[[5]]$stk_c$mwts[,,98]-tmpres[[5]]$stk_c$mwts[,,98]#  same 
+ # 
+ # 
+ # 
+ # jeff[[1]]$stk_c$stk@catch.n[3,7]
+ # tmpres[[1]]$stk_c$stk@catch.n[3,7]
+ # 
+ # 
+ # rec(iter(jeff[[1]]$stk_c$stk,7))- rec(iter(tmpres[[1]]$stk_c$stk,7))
+ # 
+ # tmpres[[1]]$stk_c$schnualt_par[,,1]
+ # tmpres[[5]]$stk_rc$schnualt_par[,,4]
+ # tmpres[[5]]$stk_rc$csa_par
+ # tmpres[[1]]$stk_rc$schnub0_par[1,1,]
+ # tmpres[[5]]$stk_rc$schnualt_par[1,1,]
+ # 
  

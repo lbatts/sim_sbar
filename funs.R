@@ -71,14 +71,27 @@ assessments<- function(xx){
   iters<-dim(stk)[6]
   mort<-mean(m(stk),na.rm=T)
   
-  xx$schnub0 <- xx$schnualt <- xx$csa <- array(NA,c(6,no.years,iters))
+  xx$schnub0 <- xx$schnualt <- xx$csa <- array(NA,c(7,no.years,iters))
   
   xx$schnub0_par <- xx$schnualt_par <- xx$csa_par <- array(NA,c(4,2,iters))
+  
+  xx$rv <- array(NA,c(7,no.years,iters))
+  
+  
+  xx$rv[1,,]<-stock.n(stk)[1,]*catch.wt(stk)[1,]
+  xx$rv[2,,]<-quantSums(stock.n(stk)[pr_range,]*catch.wt(stk)[pr_range,])
+  xx$rv[3,,]<-quantSums(stock.n(stk)[f_range,]*catch.wt(stk)[f_range,])
+  xx$rv[4,,]<-stock.n(stk)[1,]
+  xx$rv[5,,]<-quantSums(stock.n(stk)[pr_range,])
+  xx$rv[6,,]<-quantSums(stock.n(stk)[f_range,])
+  xx$rv[7,,]<-quantMeans(harvest(stk))
+  
   #plot(stk)
   for (j in 1:iters){
     print(j)
     idx<-iter(xx$idx,j)
     mean_wts<-xx$mwts[,,j]
+    
     #print("linearmod")
     mod<-stats::lm(mean_wts[2,2:no.years]~mean_wts[3,1:no.years-1])
     W1<-coef(mod)[1]
@@ -157,6 +170,8 @@ assessments<- function(xx){
         
         xx$schnualt[1:4,,j]<-matrix((schnualt[row.names(schnualt)=="f_calc" | row.names(schnualt)=="rec_bio" | row.names(schnualt)=="post_rec" | row.names(schnualt)=="biomass","Estimate"]),byrow=T,ncol=no.years,nrow=4)
         
+        xx$schnualt[5:7,,j] <- xx$schnualt[1:3,,j] /  mean_wts[3:1,,drop=F]
+        
       })
     
     #print("after schnu alt")
@@ -220,6 +235,8 @@ assessments<- function(xx){
         xx$schnub0_par[1:3,,j]<-schnub0[c("logq","logindex_sigma","logB0"),]
         
         xx$schnub0[1:4,,j]<-matrix((schnub0[row.names(schnub0)=="f_calc" | row.names(schnub0)=="rec_bio" | row.names(schnub0)=="post_rec" | row.names(schnub0)=="biomass","Estimate"]),byrow=T,ncol=no.years,nrow=4)
+        
+        xx$schnub0[5:7,,j] <- xx$schnub0[1:3,,j] /  mean_wts[3:1,,drop=F]
         
       })
     
@@ -296,9 +313,16 @@ assessments<- function(xx){
         
         xx$csa[1:4,,j]<-matrix((csaest[row.names(csaest)=="f_calc" | row.names(csaest)=="rhat" | row.names(csaest)=="phat" | row.names(csaest)=="bhat","Estimate"]),byrow=T,ncol=no.years,nrow=4)
         
+        xx$csa[5:6,,j] <- xx$csa[1:2,,j] * mean_wts[2:1,,drop=F]
+        xx$csa[7,,j] <- xx$csa[3,,j] * mean_wts[3,]
       })
     
   }#end of iters loop
+  xx$idx<-qapply(idx, iterMedians)
+  xx$stk<-qapply(stk, iterMedians)
+  #xx$idx<-NA
+  #xx$stk<-NA
+  
   
   return(xx)
 }
