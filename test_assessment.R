@@ -67,7 +67,7 @@ tmp$fn() ## this shoul be 70637.95
 
 (opt1 <- nlminb(start=tmp$par,objective=tmp$fn,gradient=tmp$gr,control = list(iter.max=100000,eval.max=100000,rel.tol=1e-10)))
 
-opt1$objective # -89.14535
+opt1$objective # should be -89.14535
 
 
 srep<-TMB::sdreport(tmp)
