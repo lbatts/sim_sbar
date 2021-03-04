@@ -1,6 +1,8 @@
 #===================================
 # Code for simulation testing of the stage-based assessment models of sbar package
 # Author : LB
+#Distributed under GPL-3 or later
+#Some code here is modified from https://github.com/iagomosqueira/stocksims which was distributed under GPL-2 or later
 #Feb 2021
 #===================================
 rm(list=ls())

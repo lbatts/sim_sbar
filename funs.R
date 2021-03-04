@@ -1,7 +1,10 @@
-##=======
-#
+#===================================
 # Functions for stock simulation
-#========
+# Author : LB
+#Distributed under GPL-3 or later
+#Some code here is modified from https://github.com/iagomosqueira/stocksims, which was distributed under GPL-2 or later
+#Feb 2021
+#===================================
 luke_gisla <-function(linf, k,len){
   
   logM<-0.55 - (1.61*log(len)) + (1.44*log(linf)) + log(k)

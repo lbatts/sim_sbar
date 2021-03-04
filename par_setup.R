@@ -1,4 +1,11 @@
-source("funs.R")
+#===================================
+# Code for simulation testing of the stage-based assessment models of sbar package.
+# Set up of factors and scenarios
+# Author : LB
+#Distributed under GPL-3 or later
+#Some code here is modified from https://github.com/iagomosqueira/stocksims which was distributed under GPL-2 or later
+#Feb 2021
+#===================================source("funs.R")
 
 #load database
 load(url("https://github.com//fishnets//fishnets//blob//master//data//fishbase-web//fishbase-web.RData?raw=True"))

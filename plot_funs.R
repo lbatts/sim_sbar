@@ -1,4 +1,9 @@
-
+#===================================
+# Functions for plotting simulation runs
+# Author : LB
+#Distributed under GPL-3 or later
+#Feb 2021
+#===================================
 #x<-tmpres[[1]]$stk_c
 #x<-i$stk_c
 res_extract<-function(x){

@@ -1,3 +1,10 @@
+#===================================
+# Plotting results of simulation testing
+# Author : LB
+#Distributed under GPL-3 or later
+#Feb 2021
+#===================================
+
 rm(list=ls())
 #library(FLCore)
 #library(FLasher)
