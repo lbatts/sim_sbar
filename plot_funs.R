@@ -7,47 +7,127 @@
 #x<-tmpres[[1]]$stk_c
 #x<-i$stk_c
 res_extract<-function(x){
-  
-  
+
+
   rv<-melt(x$rv)
   head(rv)
   # levels(factor(rv$Var1))# rec_wgt, postrec_wgt, stk_wgt, rec_no, postrec_no, stk_no, f
   # levels(factor(rv$Var2))#year
   # levels(factor(rv$Var3))#iter
-  # 
+  #
   rvvars<-c("rec_wgt", "postrec_wgt", "stk_wgt", "rec_no", "postrec_no", "stk_no", "f")
   rvlevels<-levels(factor(rv$Var1))# rec_wgt, postrec_wgt, stk_wgt, rec_no, postrec_no, stk_no, f
   lookup<-data.frame(rvvars,rvlevels)
-  
+
   rv$var<-lookup$rvvars[match(rv$Var1,lookup$rvlevels)]
   rv$type <- "real values"
-  
+
   #if()
-  
-  
+
+  rvvars<-c("rec_wgt", "postrec_wgt", "stk_wgt", "rec_no", "postrec_no", "stk_no", "f")
+  rvlevels<-levels(factor(rv$Var1))# rec_wgt, postrec_wgt, stk_wgt, rec_no, postrec_no, stk_no, f
+  lookup<-data.frame(rvvars,rvlevels)
   cs<-melt(x$csa)
   lookup$csalevels<-c(6,5,7,2,1,3,4)
   cs$var<-lookup$rvvars[match(cs$Var1,lookup$csalevels)]
   cs$type<-"CSA"
-  
+
   schnualt<-melt(x$schnualt)
   lookup$schnulevels<-c(3,2,1,7,6,5,4)
   schnualt$var<-lookup$rvvars[match(schnualt$Var1,lookup$schnulevels)]
   schnualt$type<-"Schnute orig"
-  
+
   schnub0<-melt(x$schnub0)
   schnub0$var<-lookup$rvvars[match(schnub0$Var1,lookup$schnulevels)]
   schnub0$type<-"Schnute B0 est"
-  
+
 dat<-rbind(rv,cs,schnualt,schnub0)
 colnames(dat)[2:3]<-c("year","iter")
 # dim(dat)
 # dim(dat[!complete.cases(dat[ , 4]),])
 #dat<-dat[complete.cases(dat[ , 4]),]
-  
 
-return(dat[,2:6])  
-  
-  
-  
+
+return(dat[,2:6])
+
+
+
 }
+
+
+par_extract<-function(x){
+
+  #x<-i$stk_c
+
+  errors<-c("obj evals to NaN", "did not converge" , "try different starting pars","rho error")
+
+  cs<-melt(x$csa_par)
+  cs<-dcast(cs, ...~Var2, value.var='value')
+  cs$errors <- as.character(ifelse(cs$`1` %in% errors, cs$`1`, NA))
+  cs$`1`[which(cs$`1`%in% errors)] <- NA
+  cs[,3]<-as.numeric(cs[,3])
+  cs[,4]<-as.numeric(cs[,4])
+    cs$t1<-NA
+    cs$t2<-NA
+  cs$t1[!is.na(cs$`1`)] <- with(cs[!is.na(cs$`1`),],ifelse(Var1 == 1, plogis(`1`),exp(`1`)))
+  cs$t2[!is.na(cs$`2`)] <- with(cs[!is.na(cs$`2`),],ifelse(Var1 == 1, plogis(`2`),exp(`2`)))
+  lookup<-data.frame(vars = 1:3, csalevels =  c("q", "surveycv","pr1"))
+  cs$var<-lookup$csalevels[match(cs$Var1,lookup$vars)]
+  cs$var<-as.character(cs$var)
+  suppressWarnings(cs$var[which(cs$errors%in% errors)] <-  "all")
+  cs$type<-"CSA"
+  cs$var<-as.character(cs$var)
+
+  #cs[complete.cases(cs[ , "var"]),]
+
+  salt<-melt(x$schnualt_par)
+  salt<-dcast(salt, ...~Var2, value.var='value')
+  salt$errors <- as.character(ifelse(salt$`1` %in% errors, salt$`1`, NA))
+  salt$`1`[which(salt$`1`%in% errors)] <-  NA
+  salt[,3]<-as.numeric(salt[,3])
+  salt[,4]<-as.numeric(salt[,4])
+    salt$t1<-NA
+    salt$t2<-NA
+  salt$t1[!is.na(salt$`1`)] <- exp(salt$`1`[!is.na(salt$`1`)])
+  salt$t2[!is.na(salt$`2`)] <- exp(salt$`2`[!is.na(salt$`2`)])
+  lookup$saltlevels <- c("q", "surveysigma",NA)
+  salt$var<-lookup$saltlevels[match(salt$Var1,lookup$vars)]
+  salt$var<-as.character(salt$var)
+  suppressWarnings(salt$var[which(salt$errors%in% errors)] <-  "all")
+  salt$type<-"schnualt"
+
+
+  sb0<-melt(x$schnub0_par)
+  sb0<-dcast(sb0, ...~Var2, value.var='value')
+  sb0$errors <- as.character(ifelse(sb0$`1` %in% errors, sb0$`1`, NA))
+  sb0$`1`[which(sb0$`1`%in% errors)] <- NA
+  sb0[,3]<-as.numeric(sb0[,3])
+  sb0[,4]<-as.numeric(sb0[,4])
+  sb0$t1<-NA
+  sb0$t2<-NA
+  sb0$t1[!is.na(sb0$`1`)] <- exp(sb0$`1`[!is.na(sb0$`1`)])
+  sb0$t2[!is.na(sb0$`2`)] <- exp(sb0$`2`[!is.na(sb0$`2`)])
+  lookup$sb0levels <- c("q", "surveysigma","B0")
+  sb0$var<-lookup$sb0levels[match(sb0$Var1,lookup$vars)]
+  sb0$var<-as.character(sb0$var)
+  suppressWarnings(sb0$var[which(sb0$errors%in% errors)] <- "all")
+  sb0$type<-"schnub0"
+
+  # str(cs);
+  # str(salt)
+  dat<-rbind(cs,salt,sb0)[2:9]
+  colnames(dat)[1]<-c("iter")
+  colnames(dat)[2:3]<-c("rawest","rawse")
+  colnames(dat)[5:6]<-c("est","se")
+
+  #head(dat)
+  # dim(dat)
+   #dim(dat[complete.cases(dat[ , "var"]),])
+  dat<-dat[complete.cases(dat[ , "var"]),]
+
+
+  return(dat)
+
+
+}
+

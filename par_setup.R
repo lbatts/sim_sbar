@@ -5,7 +5,8 @@
 #Distributed under GPL-3 or later
 #Some code here is modified from https://github.com/iagomosqueira/stocksims which was distributed under GPL-2 or later
 #Feb 2021
-#===================================source("funs.R")
+#===================================
+source("funs.R")
 
 #load database
 load(url("https://github.com//fishnets//fishnets//blob//master//data//fishbase-web//fishbase-web.RData?raw=True"))
@@ -14,8 +15,8 @@ load(url("https://github.com//fishnets//fishnets//blob//master//data//fishbase-w
 #MON <- subset(fb,species=="Lophius piscatorius") #scrape database MON
 HER <- subset(fb,species=="Clupea harengus harengus")
 rm(fb)
-#MON <- MON[,c("sex","linf","k","t0","a","b")] # 
-HER <- HER[,c("linf","k","t0","a","b")]  
+#MON <- MON[,c("sex","linf","k","t0","a","b")] #
+HER <- HER[,c("linf","k","t0","a","b")]
 
 #Get the means and create an FLPar object
 #MON <- apply(MON[,2:6],2,mean,na.rm=T)
@@ -45,53 +46,57 @@ hpar["a50"] = 2.5 # this a rough value from assessment ogive
 hpar["l50"] = vonB(hpar,age=2.5) # recalc this par
 
 # steepness of SR, this useed to derive params for bevholt later
-mpar["s"]<-0.9269363  #predicted steepness for lophidae, for species = 0.9367075   
-hpar["s"]<- 0.7330235 # predicted form Fishlife again. This is genus specific, species = 0.4727191 
+mpar["s"]<-0.9269363  #predicted steepness for lophidae, for species = 0.9367075
+hpar["s"]<- 0.7330235 # predicted form Fishlife again. This is genus specific, species = 0.4727191
 
 
 hpar["v"] <-300000 # roughly maximum SSB  taken from spring spawning herring  (Skagerrak, Kattegat, and western Baltic) 2019 advice
 mpar["v"] <- 430000 # value from a4a assessment 1986-2018 is 436229 i.e  virgin SSB, spr0 x mean recruitment
+
+lengths<-vonB(age = c(0:20+.5),mpar)
+wts <-FLQuant(c(mpar["a"])*lengths^c(mpar["b"]), dimnames= list(age=0:20))
+
 sce_ls <- list(
-  
-  lh = list(mon = mpar, 
+
+  lh = list(mon = mpar,
             her = hpar),
-  range = list(mon = c(min=0,max=20,minfbar=1,maxfbar=20,plusgroup=20), 
-               her = c(min=0,max=8,minfbar=2,maxfbar=8,plusgroup=8)), # age range is what 
-  
-  sel = list(mon = list(kn0 = 1, 
-                        logistic = logistic(FLQuant(c(0:20+.5),dimnames=list(age = 0:20)),FLPar("asym" = 1, "a50" = .9, "ato95" = 1)), 
-                        dn = dnormal(FLQuant(c(0:20+.5),dimnames=list(age = 0:20)), FLPar("sel1" = 1.8, "sel2" = 0.9, "sel3" = 20))  ), 
-             her = list(kn0 = 1, 
-                        logistic = logistic(FLQuant(c(0:8+.5),dimnames=list(age = 0:8)), FLPar("asym" = 1, "a50" = 1.5, "ato95" = 2)), 
+  range = list(mon = c(min=0,max=20,minfbar=1,maxfbar=20,plusgroup=20),
+               her = c(min=0,max=8,minfbar=1,maxfbar=8,plusgroup=8)), # age range is what
+
+  sel = list(mon = list(kn0 = 1,
+                        logistic = logistic(FLQuant(c(0:20+.5),dimnames=list(age = 0:20)),FLPar("asym" = 1, "a50" = .9, "ato95" = 1)),
+                        dn = dnormal(FLQuant(c(0:20+.5),dimnames=list(age = 0:20)), FLPar("sel1" = 1.8, "sel2" = 0.9, "sel3" = 20))  ),
+             her = list(kn0 = 1,
+                        logistic = logistic(FLQuant(c(0:8+.5),dimnames=list(age = 0:8)), FLPar("asym" = 1, "a50" = 1.5, "ato95" = 2)),
                         dn = dnormal(FLQuant(c(0:8+.5),dimnames=list(age = 0:8)),FLPar("sel1" = 3, "sel2" = 1.7, "sel3" = 7))  )  ),
-  
-  nm = list(mon = list(cons = 0.25,#same as a4a assessment 
-                       gis = luke_gisla(mpar["linf"],mpar["k"],len = vonB(age = c(0:20+.5),mpar))),#should ages be +0.5????????
-           her = list(cons = griffiths(hpar), 
-                      gis = c(0.3,0.5,rep(0.2,times=7))  )  ),#went with values from assessment #luke_gisla(hpar["linf"],hpar["k"],len = vonB(age = c(0:8)+.5,hpar)))
-  
+
+  nm = list(mon = list(cons = 0.25,#same as a4a assessment
+                       age_vary = c(lorenzen(wts))),#should ages be +0.5????????
+           her = list(cons = griffiths(hpar),
+                      age_vary = c(0.3,0.5,rep(0.2,times=7))  )  ),#went with values from assessment #luke_gisla(hpar["linf"],hpar["k"],len = vonB(age = c(0:8)+.5,hpar)))
+
   fc = c("c","ow","rc"),
-  
+
   ts = list(short = 20,long = 40),
-  
+
   sr = list(recsd0.1 = 0.1, recsd0.4 = 0.4),
-  
+
   ar = list(nocor = 0, rho = 0.6)
-  
+
 )
+
+rm(list = c("param.","lengths", "wts", "HER"))
 
 #set up FLBRP object
 # mon_eq=lhEql(mpar,range = c(min=0,max=20,minfbar=1,maxfbar=20,plusgroup=20))
 # plot(mon_eq)
 # m(mon_eq) #dodgy
 # harvest(mon_eq) #dodgy
-# 
-# 
-# 
+#
+#
+#
 # her_eq=lhEql(mpar,range = c(min=0,max=8,minfbar=2,maxfbar=8,plusgroup=8))
 # plot(her_eq)
 # m(her_eq) #dodgy
 # harvest(mon_eq) #dodgy
-
-
 
