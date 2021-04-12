@@ -5,6 +5,7 @@
 #Feb 2021
 #===================================
 
+#Best to restart r session if coming straight from sim runs as some package conflicts...
 rm(list=ls())
 #
 detach(package:reshape) # might need this if not restarted R so reshape2 can be used properly
@@ -13,13 +14,23 @@ library(tidyr)
 library(dplyr)
 
 setwd("C:/Users/LukeB/Documents/sim_sbar")
+
+# quick check that runs that are not logistic or dome are the same
+
+#  load("res_10iters_allsce.Rdata")
+#  i<-tmpres[[1]]
+#  load("res_10iters_allsce_ldcut.RData")
+#  j<-tmpres[[1]]
+# i$stk_c$mwts - j$stk_c$mwts
+# i$stk_c$csa - j$stk_c$csa
+rm(list=ls())
 source("plot_funs.R")
-
-load("res_10iters_allsce.Rdata")
-#i<-tmpres[[24]]
+ load("res_100iters_allsce_new.Rdata")
+ #load("res_10iters_allsce.Rdata")
+ #i<-tmpres[[1]]
 ls()
+head(sce)
 
-#dim(sce)[1]
 bigdat_ls<-lapply(tmpres[1:dim(sce)[1]],function(i){
 
   print(i$sce_id)
@@ -32,112 +43,490 @@ bigdat_ls<-lapply(tmpres[1:dim(sce)[1]],function(i){
 })
 
 bigdat<-dplyr::bind_rows(bigdat_ls)
+
+
+convergence_ls<-lapply(tmpres[1:dim(sce)[1]],function(i){
+  
+  print(i$sce_id)
+  tt<-lapply(i[3:5],error_extract)
+  dat<- dplyr::bind_rows(tt, .id = "HD")
+  dat$sce_id <- i$sce_id
+  #dat$scenario <- as.character(i$scenario)
+  
+  return(dat)
+})
+
+convergence<-dplyr::bind_rows(convergence_ls)
+
 head(bigdat)
+head(convergence)
+dim(bigdat)
+dim(convergence)
+
+
 #====================================================
-#currently we have the 96 scenarios from sce dataframe and the three Harvest Dynamics (HD) for each scenario. 96*3 = 288 scenarios. 288* 5 iters = 2880
+#currently we have the 48 scenarios from sce dataframe and the three Harvest Dynamics (HD) for each scenario. 48*3 = 144 scenarios. 144* 10 iters = 1440
 head(sce)
-f_dat<-merge(bigdat, sce, by.x  = "sce_id" , by.y =0,all.x=T)
+data_table_1 = data.table::data.table(bigdat, key="sce_id")
+sce$sce_id<-as.integer(row.names(sce))
+data_table_2 = data.table::data.table(sce, key="sce_id")
+data_table_3 = data.table::data.table(convergence, key="sce_id")
 
-head(bigdat)
-subset(f_dat,f_dat$sce_id==24 & f_dat$type=="CSA")
-subset(bigdat,bigdat$sce_id==24 & bigdat$type=="CSA")
+f_dat<-merge(data_table_1, data_table_2,all.x=T)
+#f_dat<-merge(bigdat, sce, by.x  = "sce_id" , by.y =0,all.x=T)
+c_dat<-merge(data_table_3, data_table_2,all.x=T)
 
-rm(list=c("bigdat","bigdat_ls","tmpres"))# remove so free up space
+
+head(f_dat)
+unique(f_dat$aorif)
+unique(f_dat$type)
+unique(c_dat$type)
+unique(f_dat$var)
+
+ #subset(f_dat,f_dat$sce_id==5 & f_dat$type=="CSA")
+# subset(bigdat,bigdat$sce_id==24 & bigdat$type=="CSA")
+
+rm(list=c("bigdat","bigdat_ls","convergence","convergence_ls","tmpres","par_extract","par_extract_inner","res_extract","res_extract_inner","error_extract","error_extract_inner","data_table_1","data_table_2","data_table_3"))# remove so free up space
 ls()
 head(f_dat)
 str(f_dat)
 f_dat$HD<-factor(f_dat$HD)
-#f_dat$type<-factor(f_dat$type)
+f_dat$aorif<-factor(f_dat$aorif)
+c_dat$HD<-factor(c_dat$HD)
+c_dat$aorif<-factor(c_dat$aorif)
+
 
 dim(f_dat)
 #checks
 length(levels(factor(f_dat$sce_id)))
-length(unique(with(f_dat, interaction(sce_id, HD, drop=TRUE))))   # gives correct number of 288
-length(unique(with(f_dat, interaction(sce_id, HD,iter, drop=TRUE))))   # gives correct number 1440
-length(unique(with(f_dat, interaction(sce_id, HD,iter,type, drop=TRUE))))   # gives correct number
+length(unique(with(f_dat, interaction(sce_id, HD, drop=TRUE))))   # gives correct number of 144
+length(unique(with(f_dat, interaction(sce_id, HD,iter, drop=TRUE))))   # gives correct number 144 * iters
+length(unique(with(f_dat, interaction(sce_id, HD,iter,type, drop=TRUE))))   # gives correct number 144 * iters * 6 (5 assessments and 1 real values)
+table(f_dat$type) #so counts are lower as no f values
+unique(f_dat$type)
 
+table(f_dat$HD)
+dim(subset(f_dat,f_dat$sce_id==5 & f_dat$HD=="stk_c" & f_dat$iter==10 & f_dat$type == "rv"))
 
-####=====lets deal with non convergence etc. first==============
+#with cuts
+length(levels(factor(f_dat$aorif)))
+length(unique(with(f_dat, interaction(sce_id, HD,aorif, drop=TRUE))))   # gives correct number of 240
+length(unique(with(f_dat, interaction(sce_id, HD,iter,aorif, drop=TRUE))))   # gives correct number 240 * iters
+length(unique(with(f_dat, interaction(sce_id, HD,iter,type,aorif, drop=TRUE))))   # gives correct number 2400 * 6 
+
+#### get real values in their own columns
 head(f_dat)
-f_dat$uniqrun <- with(f_dat[,], interaction(sce_id, HD,iter,type, drop=TRUE))
-f_dat$errors[is.na(f_dat$errors) == TRUE] <-"converged"
+#tmp<-subset(f_dat,f_dat$sce_id==5 & f_dat$HD=="stk_c" & f_dat$iter==10)
+# dim(tmp)
+# table(tmp$type)
+tmp1<-data.table::dcast.data.table(f_dat, sce_id+HD+aorif+iter+lh+ts+sel+ar+sr+var~ type, value.var="est")
+tmp2<-data.table::dcast.data.table(f_dat, sce_id+HD+aorif+iter+lh+ts+sel+ar+sr+var~ type, value.var="se")
 
-f_dat[f_dat$uniqrun=="17.stk_ow.3.CSA",]
+tmp1.2<-melt(tmp1,id.vars = c(1:10,12),variable.name = "assessment")
+tmp2.2<-melt(tmp2,id.vars = c(1:10,12),variable.name = "assessment")[,-11]
+ dim(tmp1.2)
+all.equal(tmp1.2[,1:10],(tmp2.2)[,1:10])
+f_dat<-cbind(tmp1.2,tmp2.2[,12])
+colnames(f_dat)[13:14]<-c("est","se")
+f_dat[1:20,]
 
-f_dat$errors[f_dat$var == "q" & f_dat$est <= 1e-10] <- "unrealistic estimates"
-levels(factor(f_dat$errors))
-f_dat[f_dat$errors == "unrealistic estimates",]
-f_dat[470:490,]
-f_dat$errors[which(f_dat$uniqrun %in% f_dat$uniqrun[f_dat$errors == "unrealistic estimates"])] <- "unrealistic estimates"
+tmp<-subset(f_dat,f_dat$sce_id==5 & f_dat$HD=="stk_c" & f_dat$iter==10)
 
-conver<-f_dat[,c(1:3,6,10:17)]
-dim(conver)
-conver<-conver[!duplicated(conver[,c(12)]),]
-levels(factor(conver$type))
-subset(conver,conver$sce_id==24 & conver$type=="CSA")
+dim(tmp)
+length(unique(tmp$rv))
+table(tmp$assessment)
+table(tmp$rv)
+
+rm("tmp" ,   "tmp1",   "tmp1.2" ,"tmp2" , "tmp2.2")
+####=====lets deal with non convergence etc. first==============
+colnames(c_dat)[7]<-"assessment"
+head(f_dat)
+f_dat$uniqrun <- with(f_dat[,], interaction(sce_id, HD,iter,assessment,aorif, drop=TRUE))
+c_dat$uniqrun <- with(c_dat[,], interaction(sce_id, HD,iter,assessment,aorif, drop=TRUE))
+head(c_dat[,c(5,6,13)])
+data_table_1 = data.table::data.table(f_dat, key="uniqrun")
+data_table_2 = data.table::data.table(c_dat, key="uniqrun")
+
+f_dat<-merge(data_table_1, data_table_2[,c(5,6,13)], all.x=T)
+dim(f_dat)
+head(f_dat)
+#f_dat$Error[f_dat$type=="rv"]<-"rv"
+rm("data_table_1" ,   "data_table_2")  
+head(c_dat)
+table(f_dat$Error)
+sum(table(c_dat$Error))/5
 
 
 
-length(unique(with(conver, interaction(sce_id, HD, iter,type, drop=TRUE))))
-length(unique(with(conver, interaction(sce_id, HD,iter, drop=TRUE))))
-length(unique(with(conver, interaction(sce_id, HD, drop=TRUE))))
+table(c_dat$assessment[c_dat$Error=="try different starting pars"],c_dat$sel[c_dat$Error=="try different starting pars"],c_dat$sce_id[c_dat$Error=="try different starting pars"])
+
+
+range(f_dat$est[f_dat$var == "qhat"],na.rm=T)
+
+f_dat$filter<-ifelse(f_dat$convergence==1,"noncon",ifelse(f_dat$var == "qhat"& f_dat$est > 1e-7,"realistic_estimates","unrealistic_estimates"))
+
+f_dat$filter[which(f_dat$uniqrun %in% f_dat$uniqrun[f_dat$filter == "realistic_estimates"])] <- "realistic_estimates"
+
+
+#f_dat[700:715,]
+
+#tmp<-droplevels(f_dat[f_dat$var=="qhat" & f_dat$type != "real values",c(15,16,1)])
+rm("c_dat")
+
+conver<-f_dat[f_dat$var=="qhat",]
+
+subset(conver,conver$sce_id==24 & conver$assessment=="csa")
+
+
+
+length(unique(with(conver, interaction(sce_id, HD, iter,assessment,aorif, drop=TRUE))))
+length(unique(with(conver, interaction(sce_id, HD,iter ,aorif,drop=TRUE))))
+length(unique(with(conver, interaction(sce_id, HD,aorif, drop=TRUE))))
+
 conver %>%
-  group_by(type) %>%
+  group_by(assessment) %>%
   count()
 
-
 tmp<-conver %>%
-    group_by(errors,type) %>%
+  group_by(Error,assessment) %>%
   count
 sum(tmp$n)
 
 
 tmp<-conver %>%
-  filter(type=="CSA") %>%
-  group_by(errors,type) %>%
+  filter(assessment=="csa") %>%
+  group_by(Error,assessment) %>%
   count
 sum(tmp$n)
 
 tmp<-conver %>%
-  filter(type=="schnub0") %>%
-  group_by(errors,type) %>%
+  filter(assessment=="sb0") %>%
+  group_by(Error,assessment) %>%
   count
+
 sum(tmp$n)
 
 tmp<-conver %>%
-  filter(type=="schnualt") %>%
-  group_by(errors,type) %>%
+  filter(assessment=="so") %>%
+  group_by(Error,assessment) %>%
   count
 
 sum(tmp$n)
 
 head(conver)
 
-save(conver, file="conver_relaxq.RData")
-table(conver$errors) # mostly "did not converge"
+save(conver, file="conver.RData")
+table(conver$Error) # mostly "did not converge"
+table(conver$filter) # mostly "did not converge"
+
+dim(conver)
 head(conver)
-table(conver[,c(1,5)])
-
-conver %>%
-  group_by(sel)%>%
-  count(errors =="converged")
- #massive issues with selelctivity that is logistic and dome
-
-conver %>%
-  group_by(sel,nm)%>%
-  count(errors=="converged")
+table(conver$var)
+# tmp<-table(conver[,c(3,9,12,17)])
+# tmp
 
 
-conver %>%
-  group_by(sel,ts)%>%
-  count(errors=="converged")
+tmp<-conver %>% 
+  count(assessment, sel,filter) %>% 
+  group_by(sel,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = sel,values_from = Percentage)#%>%
+  #filter(filter=="realistic estimates")
 
-conver %>%
-  group_by(sel,lh)%>%
-  count(errors=="converged")
+tmp2<-conver %>% 
+  count(assessment, HD,filter) %>% 
+  group_by(HD,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = HD,values_from = Percentage)#%>%
+#filter(filter=="realistic estimates")
+table(conver$filter)
+table(conver$filter,conver$assessment,conver$sel,conver$ts)
 
-#Interesting
-conver %>%
-  group_by(sel,type)%>%
-  count(errors=="converged")
+conver$var
+range(conver$est[conver$filter=="unrealistic_estimates" & conver$assessment=="so"])
+
+1e-6/3.212016e-09
+
+library(xtable)
+print(xtable(tmp[,3:5]),include.rownames=FALSE)
+# 
+# tmp<-f_dat
+# tmp<-f_dat[f_dat$filter=="realistic_estimates",]
+# 
+# cnt<-with(f_dat, tapply(filter, list( assessment,sel), length))
+# cnt2<-with(f_dat, tapply(filter, list( assessment,sel,filter), length))
+# 
+# 
+# cnt2[,,1]/cnt
+
+tab<-conver %>%
+  group_by(sel,assessment)%>%
+  count(convergence ==0)
+
+
+colnames(tab)[3]<-"converged"
+# 
+# print(xtable(dcast(tab, sel+ type  ~ converged)),include.rownames=FALSE)
+
+
+
+
+
+
+tmp<-conver %>%
+  group_by(sel,assessment)%>%
+  count(filter=="realistic_estimates")
+
+table(tmp)
+#massive issues with selelctivity that is logistic and dome
+
+#====================================================================================
+#Relative error tables
+dim(f_dat)
+head(f_dat)
+
+###use this as a a  nice summary at start of results section
+table(f_dat$filter)/sum(table(f_dat$filter))
+
+
+#filter f dat!!!!!!!!!
+
+#f_dat[f_dat$type=="real values",]
+head(f_dat)
+
+f_dat$rel_err <- (f_dat$est - f_dat$rv)/f_dat$rv
+f_dat$rel_se <- f_dat$se/f_dat$est
+
+fpars<-c(unique(f_dat$var)[c(2:4)])
+npars<-c(unique(f_dat$var)[c(5:47)])
+
+table(f_dat$filter)
+
+tmp<-f_dat %>%
+  filter(filter == "realistic_estimates" & sel == "kn0") %>%
+  filter(var %in% fpars) %>%
+  group_by(sel,assessment,var) %>%
+  summarise(mean_re = mean(rel_err,na.rm=T),median_re = median(rel_err,na.rm=T),mean_rse = mean(rel_se,na.rm=T),median_rse = median(rel_se,na.rm=T))
+  
+tmp
+library(xtable)
+print(xtable(tmp),include.rownames=FALSE)
+
+
+###qhat table
+tmp<-f_dat %>%
+  filter(filter == "realistic_estimates" & var == "qhat") %>%
+   group_by(sel,lh,assessment, HD) %>%
+  summarise(median_re = median(rel_err,na.rm=T),median_rse = median(rel_se,na.rm=T)) 
+
+  field <- f_dat %>% distinct(sel) %>% pull()
+  field2 <- f_dat %>% distinct(HD) %>% pull()
+  sub_field <- colnames(tmp)[5:6]
+  
+pivot_names1 <- purrr::map(field[c(1,3,2)],~paste(., field2, sep = "_")) %>% unlist()
+pivot_names2 <- purrr::map(pivot_names1, ~paste(., sub_field, sep = "_")) %>% unlist()
+pivot_vals <- rep(sub_field, length(pivot_names2)/2)
+pivot_vars1 <- purrr::map(field[c(1,3,2)], rep, 6) %>% unlist()
+pivot_vars2 <- rep(purrr::map(field2, rep, 2) %>% unlist(),3)
+
+spec <- tibble(.name = pivot_names2, .value = pivot_vals, sel=pivot_vars1, HD=pivot_vars2 )
+
+tmp<-tmp %>% pivot_wider_spec(spec)
+
+tmp2<-f_dat %>%
+  filter(filter == "realistic_estimates" & var == "qhat") %>%
+  group_by(sel,lh,assessment, HD) %>%
+  summarise(median_re = median(rel_err,na.rm=T),median_rse = median(rel_se,na.rm=T)) %>%
+  pivot_wider(
+    names_from = c(sel,HD),
+    names_sep = "_",
+    values_from = c(median_re,median_rse)
+  )
+
+colnames(tmp)  
+colnames(tmp2)  
+
+tmp$kn0_stk_rc_median_re==tmp2$median_re_kn0_stk_rc
+tmp$logistic_stk_c_median_rse==tmp2$median_rse_logistic_stk_c
+
+tmp
+print(xtable(tmp),digits=c(1,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),include.rownames=FALSE)
+
+
+
+
+
+
+
+
+# 
+# 
+# 
+# f_dat[f_dat$filter=="realistic_estimates"&f_dat$lh=="mon"&f_dat$sel=="kn0"&f_dat$assessment=="sb0nbw"& f_dat$var =="qhat",]
+# 
+# tmp<-f_dat[f_dat$filter=="realistic_estimates" & f_dat$var =="qhat",]
+# 
+# tt<-with(tmp, tapply(rel_err, list(assessment, var,sel,lh,HD), median,na.rm=T))
+# dim(tt)
+# print(xtable(tt[,,1],digits=c(1,3,3,3),include.rownames=FALSE))
+
+
+
+plot_dat<-f_dat %>%
+  filter(filter=="realistic_estimates")
+
+library(ggplot2)
+library(ggh4x)
+library(RColorBrewer)
+myColors <- brewer.pal(5,"Set1")
+names(myColors) <- levels(plot_dat$assessment)
+colScale <- scale_colour_manual(name = "Assessment",values = myColors)
+
+# rects <- data.frame(xstart = c("csa",    "sb0"  ,  "sb0ubw", "so","soubw"), xend = c("csa","sb0" ,   "sb0ubw", "so"  ,   "soub"), col = myColors)
+fa<-unique(plot_dat$assessment)[1:3]
+
+dev.off()
+#####f plots
+for(selh in levels(plot_dat$sel)){
+  for(tsh in levels(plot_dat$ts)){
+    for(varh in  c("re","se")){
+      # selh<-"kn0"
+      # tsh<-"long"
+      # varh<-"fpars"
+      # 
+      tmpdat <- plot_dat %>%
+        filter(var %in% fpars,sel == selh,ts ==tsh, assessment %in% fa)%>%
+        mutate(var = forcats::fct_relevel(var, 
+                                          "F1", "Fmid", "Fend"))
+      
+      if(varh=="re"){
+        
+        
+       
+        # 
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        )
+          
+          
+          
+          
+          
+          # )
+        dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        #
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+         print(
+        p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+         )
+         dev.off()
+        
+        
+      }else{
+        
+        #dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+         print(
+        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+         )
+        
+        dev.off()
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+         print(
+        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+         )
+        
+       
+        dev.off()
+      }
+    }
+  }
+}
+
+
+####=====================================
+#stock numbers
+dev.off()
+#####f plots
+for(selh in levels(plot_dat$sel)){
+  for(tsh in levels(plot_dat$ts)){
+    for(varh in  c("re","se")){
+      # selh<-"kn0"
+      # tsh<-"long"
+      # varh<-"re"
+      # 
+      tmpdat <- plot_dat %>%
+        filter(var %in% npars,sel == selh,ts ==tsh)
+      
+      if(varh=="re"){
+        
+        
+        
+        # 
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")
+        )
+        
+        
+        
+        
+        
+        # )
+        dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        #
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")
+        )
+        
+        
+        dev.off()
+        
+        
+      }else{
+        
+        #dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        )
+        
+        dev.off()
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        )
+        
+        
+        dev.off()
+      }
+    }
+  }
+}
+
+
 
