@@ -46,7 +46,7 @@ hpar["a50"] = 2.5 # this a rough value from assessment ogive
 hpar["l50"] = vonB(hpar,age=2.5) # recalc this par
 
 # steepness of SR, this useed to derive params for bevholt later
-mpar["s"]<-0.9269363  #predicted steepness for lophidae, for species = 0.9367075
+mpar["s"]<- 0.9480761 #  #predicted steepness for genus , for species = 0.9367075
 hpar["s"]<- 0.7330235 # predicted form Fishlife again. This is genus specific, species = 0.4727191
 
 
@@ -60,8 +60,8 @@ sce_ls <- list(
 
   lh = list(mon = mpar,
             her = hpar),
-  range = list(mon = c(min=0,max=20,minfbar=1,maxfbar=20,plusgroup=20),
-               her = c(min=0,max=8,minfbar=1,maxfbar=8,plusgroup=8)), # age range is what
+  range = list(mon = c(min=0,max=20,minfbar=0,maxfbar=20,plusgroup=20),
+               her = c(min=0,max=8,minfbar=0,maxfbar=8,plusgroup=8)), # age range is what
 
   sel = list(mon = list(kn0 = 1,
                         logistic = logistic(FLQuant(c(0:20+.5),dimnames=list(age = 0:20)),FLPar("asym" = 1, "a50" = .9, "ato95" = 1)),

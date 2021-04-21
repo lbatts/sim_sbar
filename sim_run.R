@@ -232,6 +232,10 @@ registerDoParallel(cl)
 
   save(tmpres,sce,file="res_100iters_allsce_new.RData")
 
+ 
+ 
+ 
+ 
   #save(tmpres,sce,file="res_100iters_sce3_7_n.RData")
   # save(tmpres,sce,file="res_10iters_sce4_8_n.RData")
  #

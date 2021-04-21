@@ -17,7 +17,7 @@ setwd("C:/Users/LukeB/Documents/sim_sbar")
 
 # quick check that runs that are not logistic or dome are the same
 
-#  load("res_10iters_allsce.Rdata")
+ # load("res_10iters_allsce.Rdata")
 #  i<-tmpres[[1]]
 #  load("res_10iters_allsce_ldcut.RData")
 #  j<-tmpres[[1]]
@@ -82,7 +82,6 @@ unique(f_dat$aorif)
 unique(f_dat$type)
 unique(c_dat$type)
 unique(f_dat$var)
-
  #subset(f_dat,f_dat$sce_id==5 & f_dat$type=="CSA")
 # subset(bigdat,bigdat$sce_id==24 & bigdat$type=="CSA")
 
@@ -121,16 +120,31 @@ head(f_dat)
 # table(tmp$type)
 tmp1<-data.table::dcast.data.table(f_dat, sce_id+HD+aorif+iter+lh+ts+sel+ar+sr+var~ type, value.var="est")
 tmp2<-data.table::dcast.data.table(f_dat, sce_id+HD+aorif+iter+lh+ts+sel+ar+sr+var~ type, value.var="se")
+colnames(tmp1[,c(1:10,16)])
 
-tmp1.2<-melt(tmp1,id.vars = c(1:10,12),variable.name = "assessment")
-tmp2.2<-melt(tmp2,id.vars = c(1:10,12),variable.name = "assessment")[,-11]
- dim(tmp1.2)
-all.equal(tmp1.2[,1:10],(tmp2.2)[,1:10])
-f_dat<-cbind(tmp1.2,tmp2.2[,12])
+tmp1.2<-melt(tmp1,id.vars = c(1:10,16),variable.name = "assessment") # c(1:10,12)
+tmp2.2<-melt(tmp2,id.vars = c(1:10,16),variable.name = "assessment")
+ head(tmp2.2)
+
+ all.equal(tmp1.2[,1:10],(tmp2.2)[,1:10])
+f_dat<-cbind(tmp1.2,tmp2.2[,13])
 colnames(f_dat)[13:14]<-c("est","se")
 f_dat[1:20,]
 
 tmp<-subset(f_dat,f_dat$sce_id==5 & f_dat$HD=="stk_c" & f_dat$iter==10)
+
+###make n40 into nend
+f_dat$n_id<-ifelse(f_dat$ts=="short" & f_dat$var=="N20","Nend",ifelse( f_dat$ts=="long" & f_dat$var=="N40" ,"Nend",     f_dat$var))
+
+unique(f_dat$n_id[f_dat$ts=="short" & f_dat$var=="N20"])
+unique(f_dat$n_id[f_dat$ts=="long" & f_dat$var=="N40"])
+
+f_dat$var<-f_dat$n_id
+dim(f_dat)
+
+f_dat<-f_dat[,-15]
+head(f_dat)
+
 
 dim(tmp)
 length(unique(tmp$rv))
@@ -156,6 +170,7 @@ head(c_dat)
 table(f_dat$Error)
 sum(table(c_dat$Error))/5
 
+table(f_dat$assessment)
 
 
 table(c_dat$assessment[c_dat$Error=="try different starting pars"],c_dat$sel[c_dat$Error=="try different starting pars"],c_dat$sce_id[c_dat$Error=="try different starting pars"])
@@ -175,7 +190,7 @@ rm("c_dat")
 
 conver<-f_dat[f_dat$var=="qhat",]
 
-subset(conver,conver$sce_id==24 & conver$assessment=="csa")
+subset(conver,conver$sce_id==24 & conver$assessment=="CSA")
 
 
 
@@ -192,27 +207,7 @@ tmp<-conver %>%
   count
 sum(tmp$n)
 
-
-tmp<-conver %>%
-  filter(assessment=="csa") %>%
-  group_by(Error,assessment) %>%
-  count
-sum(tmp$n)
-
-tmp<-conver %>%
-  filter(assessment=="sb0") %>%
-  group_by(Error,assessment) %>%
-  count
-
-sum(tmp$n)
-
-tmp<-conver %>%
-  filter(assessment=="so") %>%
-  group_by(Error,assessment) %>%
-  count
-
-sum(tmp$n)
-
+table(conver$assessment)
 head(conver)
 
 save(conver, file="conver.RData")
@@ -222,6 +217,8 @@ table(conver$filter) # mostly "did not converge"
 dim(conver)
 head(conver)
 table(conver$var)
+table(conver$assessment)
+
 # tmp<-table(conver[,c(3,9,12,17)])
 # tmp
 
@@ -242,42 +239,16 @@ tmp2<-conver %>%
 table(conver$filter)
 table(conver$filter,conver$assessment,conver$sel,conver$ts)
 
-conver$var
-range(conver$est[conver$filter=="unrealistic_estimates" & conver$assessment=="so"])
+range(conver$est[conver$filter=="unrealistic_estimates"& conver$assessment=="SOPEM-cw"  ])
 
-1e-6/3.212016e-09
+1e-6/4.1e-08
+
+
 
 library(xtable)
-print(xtable(tmp[,3:5]),include.rownames=FALSE)
-# 
-# tmp<-f_dat
-# tmp<-f_dat[f_dat$filter=="realistic_estimates",]
-# 
-# cnt<-with(f_dat, tapply(filter, list( assessment,sel), length))
-# cnt2<-with(f_dat, tapply(filter, list( assessment,sel,filter), length))
-# 
-# 
-# cnt2[,,1]/cnt
+print(xtable(tmp[,1:5]),include.rownames=FALSE)
+ 
 
-tab<-conver %>%
-  group_by(sel,assessment)%>%
-  count(convergence ==0)
-
-
-colnames(tab)[3]<-"converged"
-# 
-# print(xtable(dcast(tab, sel+ type  ~ converged)),include.rownames=FALSE)
-
-
-
-
-
-
-tmp<-conver %>%
-  group_by(sel,assessment)%>%
-  count(filter=="realistic_estimates")
-
-table(tmp)
 #massive issues with selelctivity that is logistic and dome
 
 #====================================================================================
@@ -295,38 +266,57 @@ table(f_dat$filter)/sum(table(f_dat$filter))
 head(f_dat)
 
 f_dat$rel_err <- (f_dat$est - f_dat$rv)/f_dat$rv
+f_dat$abrel_err <- abs((f_dat$est - f_dat$rv)/f_dat$rv)
 f_dat$rel_se <- f_dat$se/f_dat$est
 
 fpars<-c(unique(f_dat$var)[c(2:4)])
-npars<-c(unique(f_dat$var)[c(5:47)])
+npars<-unique(f_dat$var)[grep("N",unique(f_dat$var))]
 
 table(f_dat$filter)
+# 
+# tmp<-f_dat %>%
+#   filter(filter == "realistic_estimates" & sel == "kn0") %>%
+#   filter(var %in% fpars) %>%
+#   group_by(sel,assessment,var) %>%
+#   summarise(mean_re = mean(rel_err,na.rm=T),median_re = median(rel_err,na.rm=T),mean_rse = mean(rel_se,na.rm=T),median_rse = median(rel_se,na.rm=T))
+#   
+# tmp
+# library(xtable)
+# print(xtable(tmp),include.rownames=FALSE)
 
-tmp<-f_dat %>%
-  filter(filter == "realistic_estimates" & sel == "kn0") %>%
-  filter(var %in% fpars) %>%
-  group_by(sel,assessment,var) %>%
-  summarise(mean_re = mean(rel_err,na.rm=T),median_re = median(rel_err,na.rm=T),mean_rse = mean(rel_se,na.rm=T),median_rse = median(rel_se,na.rm=T))
-  
-tmp
-library(xtable)
-print(xtable(tmp),include.rownames=FALSE)
 
+tmp_un<-subset(f_dat,f_dat$filter== "unrealistic_estimates" & f_dat$var == "qhat")
+table(tmp_un$lh[tmp_un$est>1e-09])
+table(tmp_un$sr[tmp_un$est>1e-09])
+table(tmp_un$ar[tmp_un$est>1e-09])
+table(tmp_un$ts[tmp_un$est>1e-09])
+table(tmp_un$sel[tmp_un$est>1e-09])
+
+table(tmp_un$sce_id[tmp_un$est>1e-09])
+
+
+range(tmp_un$abrel_err)
+range(tmp_un$est)
+d <- density(log(tmp_un$est)) # returns the density data
+plot(d)
+abline(v=log(1e-16),lty="dotted",col=2)
+
+(1e-15-1e-6)/1e-6
 
 ###qhat table
 tmp<-f_dat %>%
-  filter(filter == "realistic_estimates" & var == "qhat") %>%
+  filter(filter %in% c("realistic_estimates","unrealistic_estimates") & var == "qhat") %>% #filter == "realistic_estimates" &
    group_by(sel,lh,assessment, HD) %>%
-  summarise(median_re = median(rel_err,na.rm=T),median_rse = median(rel_se,na.rm=T)) 
+  summarise(MRE = mean(rel_err,na.rm=T),MARE = median(abrel_err,na.rm=T))
 
   field <- f_dat %>% distinct(sel) %>% pull()
   field2 <- f_dat %>% distinct(HD) %>% pull()
   sub_field <- colnames(tmp)[5:6]
-  
-pivot_names1 <- purrr::map(field[c(1,3,2)],~paste(., field2, sep = "_")) %>% unlist()
+
+pivot_names1 <- purrr::map(field[c(1,2,3)],~paste(., field2, sep = "_")) %>% unlist()
 pivot_names2 <- purrr::map(pivot_names1, ~paste(., sub_field, sep = "_")) %>% unlist()
 pivot_vals <- rep(sub_field, length(pivot_names2)/2)
-pivot_vars1 <- purrr::map(field[c(1,3,2)], rep, 6) %>% unlist()
+pivot_vars1 <- purrr::map(field[c(1,2,3)], rep, 6) %>% unlist()
 pivot_vars2 <- rep(purrr::map(field2, rep, 2) %>% unlist(),3)
 
 spec <- tibble(.name = pivot_names2, .value = pivot_vals, sel=pivot_vars1, HD=pivot_vars2 )
@@ -336,26 +326,67 @@ tmp<-tmp %>% pivot_wider_spec(spec)
 tmp2<-f_dat %>%
   filter(filter == "realistic_estimates" & var == "qhat") %>%
   group_by(sel,lh,assessment, HD) %>%
-  summarise(median_re = median(rel_err,na.rm=T),median_rse = median(rel_se,na.rm=T)) %>%
+  summarise(MRE = mean(rel_err,na.rm=T),MARE = median(abrel_err,na.rm=T)) %>%
   pivot_wider(
     names_from = c(sel,HD),
     names_sep = "_",
-    values_from = c(median_re,median_rse)
+    values_from = c(MRE,MARE)
+  )
+
+colnames(tmp)
+colnames(tmp2)
+
+tmp$kn0_stk_rc_MRE==tmp2$MRE_kn0_stk_rc
+tmp$logistic_stk_c_MARE==tmp2$MARE_logistic_stk_c
+
+tmp
+print(xtable(tmp),digits=c(1,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),include.rownames=FALSE)
+
+######################
+#Fend and N end MARE table
+
+
+tmp<-f_dat %>%
+  filter(filter %in% c("realistic_estimates") & var %in% c("Fend","Nend")) %>% #filter == "realistic_estimates" & 
+  group_by(sel,lh,assessment, HD,var) %>%
+  summarise(MARE = median(abrel_err,na.rm=T)) 
+
+field <- f_dat %>% distinct(sel) %>% pull()
+field2 <- f_dat %>% distinct(HD) %>% pull()
+field3 <- c("Fend","Nend")
+sub_field <- colnames(tmp)[6]
+
+pivot_names1 <- purrr::map(field[c(1,2,3)],~paste(., field2, sep = "_")) %>% unlist()
+pivot_names2 <- purrr::map(pivot_names1, ~paste(., field3, sep = "_")) %>% unlist()
+pivot_names3 <- purrr::map(pivot_names2, ~paste(., sub_field, sep = "_")) %>% unlist()
+
+pivot_vals <- rep(sub_field, length(pivot_names3))
+pivot_vars1 <- purrr::map(field[c(1,2,3)], rep, 6) %>% unlist()
+pivot_vars2 <- rep(purrr::map(field2, rep, 2) %>% unlist(),3)
+pivot_vars3 <- rep(purrr::map(field3, rep, by = 1) %>% unlist(),9)
+
+spec <- tibble(.name = pivot_names3, .value = pivot_vals, sel=pivot_vars1, HD=pivot_vars2 , var=pivot_vars3 )
+
+tmp<-tmp %>% pivot_wider_spec(spec)
+
+tmp2<-f_dat %>%
+  filter(filter %in% c("realistic_estimates","unrealistic_estimates") & var %in% c("Fend","Nend")) %>%
+  group_by(sel,lh,assessment, HD,var) %>%
+  summarise(MARE = median(abrel_err,na.rm=T)) %>%
+  pivot_wider(
+    names_from = c(sel,HD,var),
+    names_sep = "_",
+    values_from = c(MARE)
   )
 
 colnames(tmp)  
 colnames(tmp2)  
 
-tmp$kn0_stk_rc_median_re==tmp2$median_re_kn0_stk_rc
-tmp$logistic_stk_c_median_rse==tmp2$median_rse_logistic_stk_c
+tmp$kn0_stk_rc_Fend_MARE==tmp2$kn0_stk_rc_Fend
+tmp$logistic_stk_c_Nend_MARE==tmp2$logistic_stk_c_Nend
 
 tmp
-print(xtable(tmp),digits=c(1,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),include.rownames=FALSE)
-
-
-
-
-
+print(xtable(tmp,digits=c(1,1,1,rep(2,18)),include.rownames=FALSE))
 
 
 
@@ -373,7 +404,7 @@ print(xtable(tmp),digits=c(1,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),include.rownam
 
 
 plot_dat<-f_dat %>%
-  filter(filter=="realistic_estimates")
+  filter(filter %in% c("realistic_estimates"))
 
 library(ggplot2)
 library(ggh4x)
@@ -385,6 +416,10 @@ colScale <- scale_colour_manual(name = "Assessment",values = myColors)
 # rects <- data.frame(xstart = c("csa",    "sb0"  ,  "sb0ubw", "so","soubw"), xend = c("csa","sb0" ,   "sb0ubw", "so"  ,   "soub"), col = myColors)
 fa<-unique(plot_dat$assessment)[1:3]
 
+
+plot_dat <- plot_dat %>%
+  mutate(assessment = forcats::fct_relevel(assessment, 
+                                    "CSA","ASOEM-cw","ASOEM-ubw","SOPEM-cw","SOPEM-ubw"))
 dev.off()
 #####f plots
 for(selh in levels(plot_dat$sel)){
@@ -409,7 +444,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
           
           
@@ -424,7 +459,7 @@ for(selh in levels(plot_dat$sel)){
         #
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
          print(
-        p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
          )
          dev.off()
         
@@ -437,7 +472,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
          print(
-        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
          )
         
         dev.off()
@@ -445,7 +480,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
          print(
-        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
          )
         
        
@@ -480,7 +515,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
         
         
@@ -495,7 +530,7 @@ for(selh in levels(plot_dat$sel)){
         #
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
         
         
@@ -510,7 +545,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
         
         dev.off()
@@ -518,7 +553,7 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
         
         

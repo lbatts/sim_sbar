@@ -42,25 +42,25 @@ res_extract_inner<-function(y){
   cs<-melt(y$csa)
   lookup$csalevels<-c(1:7)
   cs$var<-lookup$rvvars[match(cs$Var1,lookup$csalevels)]
-  cs$type<-"csa"
+  cs$type<-"CSA"
 
   schnualt<-melt(y$schnualt)
   lookup$schnulevels<-c(1:7)
   schnualt$var<-lookup$rvvars[match(schnualt$Var1,lookup$schnulevels)]
-  schnualt$type<-"so"
+  schnualt$type<-"SOPEM-cw"
 
   schnub0<-melt(y$schnub0)
   schnub0$var<-lookup$rvvars[match(schnub0$Var1,lookup$schnulevels)]
-  schnub0$type<-"sb0"
+  schnub0$type<-"ASOEM-cw"
 
   schnualt2<-melt(y$schnualt2)
   lookup$schnulevels<-c(1:7)
   schnualt2$var<-lookup$rvvars[match(schnualt2$Var1,lookup$schnulevels)]
-  schnualt2$type<-"soubw"
+  schnualt2$type<-"SOPEM-ubw"
   
   schnub02<-melt(y$schnub02)
   schnub02$var<-lookup$rvvars[match(schnub02$Var1,lookup$schnulevels)]
-  schnub02$type<-"sb0ubw"
+  schnub02$type<-"ASOEM-ubw"
   
 dat<-rbind(rv,cs,schnualt,schnub0,schnualt2,schnub02)
 colnames(dat)[2:3]<-c("year","iter")
@@ -146,7 +146,7 @@ lookup<-data.frame(vars = 1:(dm+7), csalevels =  c("qhat", "surveysigma","phat1"
 cs$var<-lookup$csalevels[match(cs$Var1,lookup$vars)]
 cs$var<-as.character(cs$var)
 #suppressWarnings(cs$var[which(cs$errors%in% errors)] <-  "all")
-cs$type<-"csa"
+cs$type<-"CSA"
 cs$var<-as.character(cs$var)
 
 #cs
@@ -160,7 +160,7 @@ salt[,4]<-as.numeric(salt[,4])
 lookup$saltlevels <- c("qhat", "surveysigma",NA,NA,NA, NA, NA, paste0(rep("N",dm),1:dm ))
 salt$var<-lookup$saltlevels[match(salt$Var1,lookup$vars)]
 salt$var<-as.character(salt$var)
-salt$type<-"so"
+salt$type<-"SOPEM-cw"
 
 
 sb0<-melt(y$schnub0_par)
@@ -170,7 +170,7 @@ sb0[,4]<-as.numeric(sb0[,4])
 lookup$sb0levels <- c("qhat", "surveysigma","B0",NA,"F1", "Fmid", "Fend", paste0(rep("N",dm),1:dm ))
 sb0$var<-lookup$sb0levels[match(sb0$Var1,lookup$vars)]
 sb0$var<-as.character(sb0$var)
-sb0$type<-"sb0"
+sb0$type<-"ASOEM-cw"
 
 
 salt2<-melt(y$schnualt2_par)
@@ -180,7 +180,7 @@ salt2[,4]<-as.numeric(salt2[,4])
 lookup$salt2levels <- c("qhat", "surveysigma",NA,NA,NA, NA, NA,paste0(rep("N",dm),1:dm ))
 salt2$var<-lookup$salt2levels[match(salt2$Var1,lookup$vars)]
 salt2$var<-as.character(salt2$var)
-salt2$type<-"soubw"
+salt2$type<-"SOPEM-ubw"
 # 
 # matchString <- paste0("convergence", collapse = "\\b|")
 # matchString <- paste0("\\b", matchString, "\\b")
@@ -193,7 +193,7 @@ sb02[,4]<-as.numeric(sb02[,4])
 lookup$sb02levels <- c("qhat", "surveysigma","B0",NA,"F1", "Fmid", "Fend", paste0(rep("N",dm),1:dm ))
 sb02$var<-lookup$sb02levels[match(sb02$Var1,lookup$vars)]
 sb02$var<-as.character(sb02$var)
-sb02$type<-"sb0ubw"
+sb02$type<-"ASOEM-ubw"
 
 
 # str(cs);
@@ -244,28 +244,28 @@ error_extract_inner<-function(y){
   cs<-melt(y$csa_errors)
   cs<-dcast(cs, ...~Var2, value.var='value')
   cs[,3]<-as.numeric(cs[,3])
-  cs$type<-"csa"
+  cs$type<-"CSA"
   
   schnualt<-melt(y$schnualt_errors)
   schnualt<-dcast(schnualt, ...~Var2, value.var='value')
   schnualt[,3]<-as.numeric(schnualt[,3])
-  schnualt$type<-"so"
+  schnualt$type<-"SOPEM-cw"
   
   schnub0<-melt(y$schnub0_errors)
   schnub0<-dcast(schnub0, ...~Var2, value.var='value')
   schnub0[,3]<-as.numeric(schnub0[,3])
-  schnub0$type<-"sb0"
+  schnub0$type<-"ASOEM-cw"
   
   
   schnualt2<-melt(y$schnualt2_errors)
   schnualt2<-dcast(schnualt2, ...~Var2, value.var='value')
   schnualt2[,3]<-as.numeric(schnualt2[,3])
-  schnualt2$type<-"soubw"
+  schnualt2$type<-"SOPEM-ubw"
   
   schnub02<-melt(y$schnub02_errors)
   schnub02<-dcast(schnub02, ...~Var2, value.var='value')
   schnub02[,3]<-as.numeric(schnub02[,3])
-  schnub02$type<-"sb0ubw"
+  schnub02$type<-"ASOEM-ubw"
   
   
   
