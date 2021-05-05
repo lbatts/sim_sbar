@@ -209,7 +209,7 @@ plot(obs[3,]~years,type="b",main="SP-porc")
 
 nu=0
 
-obj1<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = cw_mean_wts, tsp = 0, rho = cw_rho, W = cw_W , start_q = c(3e-9,1e-6,5e-7), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = TRUE, fix_indexsigma = F,ind_l_wt=c(1,1,1))
+obj1<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = cw_mean_wts, tsp = 0, rho = cw_rho, W = cw_W , start_q = c(2e-8,2e-8,2e-8), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = TRUE, fix_indexsigma = F,ind_l_wt=c(1,1,1))
 
 obj1$fn()
 # 
@@ -233,7 +233,7 @@ plot(obs.srep1[row.names(obs.srep1)=="biomass","Estimate"],col=2,type="b")
 
 
 obj2<-schnute_obserror(version=2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = cw_mean_wts, tsp = 0, rho = cw_rho, W = cw_W ,  start_indexsigma = c(0.1,0.1,0.1),
-                       start_sigma = exp(-0.25),start_q = rep(1e-6,3), start_f_calc = 0.5, start_catchsigma = 0.01,
+                       start_sigma = exp(-0.25),start_q = rep(2e-8,3), start_f_calc = 0.5, start_catchsigma = 0.01,
                        fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE,
                        fix_catchsigma = T,ind_l_wt=c(1,1,1))
 
@@ -265,7 +265,7 @@ lines(obs.srep2[row.names(obs.srep2)=="biomass","Estimate"],col=2,type="b")
 
 
 
-obj3<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = ubw_mean_wts, tsp = 0, rho = ubw_rho, W = ubw_W , start_q = c(1e-8,1e-5,1e-8), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = TRUE, fix_indexsigma = FALSE,ind_l_wt=c(1,1,1))
+obj3<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = ubw_mean_wts, tsp = 0, rho = ubw_rho, W = ubw_W , start_q = c(2e-8,2e-8,2e-8), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = TRUE, fix_indexsigma = FALSE,ind_l_wt=c(1,1,1))
 
 obj3$fn()
 
@@ -295,7 +295,7 @@ lines(obs.srep3[row.names(obs.srep3)=="biomass","Estimate"],col=2,type="b")
 
 
 obj4<-schnute_obserror(version=2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = ubw_mean_wts, tsp = 0, rho = ubw_rho, W = ubw_W ,  start_indexsigma = c(0.1,0.1,0.1),
-                       start_sigma = exp(-0.25),start_q = rep(1e-6,3), start_f_calc = 0.5, start_catchsigma = 0.1,
+                       start_sigma = exp(-0.25),start_q = rep(2e-8,3), start_f_calc = 0.5, start_catchsigma = 0.1,
                        fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE,
                        fix_catchsigma = T,ind_l_wt=c(1,1,1))
 
@@ -466,7 +466,7 @@ legend("topright",lty=c(1,2),col=c("red","blue"),legend=c("Schnute","a4a"),cex=0
 
 
 plot(f_calc.tmb,col="red",type="l",main="estimated f",ylim=c(.1,0.9))
-#lines(truef ,col="blue",lty=2)
+lines(truef ,col="blue",lty=2)
 #lines(falt ,col="green",lty=2)
 lines(f ,col="darkblue",lty=2)
 
@@ -481,6 +481,8 @@ which(truebio ==max(truebio))
 
 
 
+
+save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,file="mon78_schnute_res.Rdata")
 
 B0
 c(colSums(stock.n(a4afit)[,"2003"]*catch.wt(a4afit)[,"2003"]))*1e3
@@ -519,91 +521,33 @@ dev.off()
 #  CSA implementation
 #======================================================================================================
 
-catch.no<-whole$catch.n
+catch.no<-c(colSums(1e3*catch.n(a4afit)[,years]))
 
 no.surv = 4
 
 obs<-matrix(NA,nrow=no.surv,ncol=no.years)
 
-att<-data.frame(survey=c(1,1,2,3),type=c(1,2,2,2),timing=c(0.875,0.875,1,0.875),cv=c(0.1,0.1,0.1,0.1))
+att<-data.frame(survey=c(1,1,2,3),type=c(1,2,2,2))
+timing=c(0.875,1,0.875)
+cv=c(0.1,0.1,0.1)
 
-sr<-matrix(1,nrow=1,ncol=no.years)# number of rows is number of rec survey indices
+obs[1,]<-c(colSums(index(tun$FR_IE_IBTS)[1,years],na.rm=T))
+obs[2,]<-c(colSums(index(tun$FR_IE_IBTS)[2:10,years],na.rm=T))
+obs[3,4:16] <-c(colSums(index(tun$IE_MONKSURVEY)[mon_a,mon_y],na.rm=T))
+obs[4,]<-c(colSums(index(tun$`SP-PORC`)[,sp_y],na.rm=T))
 
-obs[1,]<-ibts.rec$CPUE.n
-obs[2,]<-ibts.postrec$CPUE.n
-obs[3,match(monk.whole$Year-1,years)] <-monk.postrec$CPUE.n
-obs[4,]<-sp.postrec$CPUE.n
+selrec<-matrix(1,nrow=1,ncol=no.years)# number of rows is number of rec survey indices
 
-
-
-data_tmb <- list(
-  obs_catch = catch.no,
-  obs_ind = obs,
-  indices_class = as.matrix(att[,1:2]),
-  indices_ts = c(0.875,1,0.875),
-  sr =sr)
-
-#sqrt(log(1.0 + (0.2^2)))
-
-params <- list(
-  logitqhat = qlogis(c(1e-4,1e-5,1e-4)),#,1e-5,1e-4)),#,1e-7)),
-  log_surveycv = log(c(0.1,0.1,0.1)),
-  log_catchcv = log(0.2),
-  logphat1 = (log(trueprevexno[1]+10000)),
-  logrhat = rep(log(truerecno[1]+1000),no.years),
-  logf_calc = rep(log(0.3), no.years),
-  lognmort = log(0.25),
-  logitsrx = rep(qlogis(1), no.years)#,#qlogis(0.9),  # this is not used currently
-) #qlogis
-
-
-compile("NFT_CSA_generic_V2.cpp")
-
-dyn.load(dynlib("NFT_CSA_generic_V2"))     
-
-
-obj <- MakeADFun(
-  data = data_tmb,
-  parameters = params,
-  map = list(
-    #logphat1=factor(NA),
-    #logitqhat = factor(rep(NA,3)),
-    #log_surveycv = factor(rep(NA,3)),          
-    log_catchcv = factor(NA),
-    lognmort = factor(NA),
-    logitsrx = factor(rep(NA,no.years))#,
-    #logf_calc = factor(rep(NA,no.years))#,
-    #logrhat= factor(rep(NA,no.years))
-  ),
-  DLL = "NFT_CSA_generic_V2")
-
+obj<- csa(catch_n = catch.no, indices_no = obs, indices_att = att, ts = timing , selrec = selrec, start_q = rep(2e-8,3), start_surveycv = 0.1, start_catchcv = 0.1, start_nmort = 0.25, start_f_calc = 0.5,fix_nmort = T, fix_prec0 = F, fix_surveycv = F, fix_catchcv = T)
 
 obj$fn()
 
-#lb<-c(log(1e-9),log(rep(1e-9,3)),log(rep(.1,16)),qlogis(exp(-0.7)))
-#ub<-c(log(1e18),log(rep(1e-3,3)),log(rep(.7,16)),qlogis(exp(-0.01)))
 
-(opt.tmb <- nlminb(start = obj$par,
-                   objective = obj$fn,
-                   gradient = obj$gr,
-                   control = list(trace = 1,
-                                  iter.max = 10000,
-                                  eval.max = 10000,
-                                  rel.tol = 1e-10)))
+opt <- nlminb(start=obj$par,objective=obj$fn,gradient=obj$gr,control = list(iter.max=100000,eval.max=100000,rel.tol=1e-10))
 
-obj$gr(opt.tmb$par)#
-obj$gr(opt.tmb$par)[1:5]
-
-obs.rep <- sdreport(obj)
-obs.srep <- summary(obs.rep)
-
-library(TMBhelper)
-Check_Identifiable(obj)
-
-opt.tmb$objective # objective form CSA console is ??
-
-
-
+obs.srep<-summary(TMB::sdreport(obj))
+obj$gr(opt$par)#
+obj$gr(opt$par)[1:5]
 
 qhat<-plogis(obs.srep[rownames(obs.srep)=="logitqhat","Estimate"])
 fcalc<-exp(obs.srep[rownames(obs.srep)=="logf_calc","Estimate"])
@@ -670,8 +614,8 @@ legend("topleft",lty=c(1,2),col=c(1,2),legend=c("a4a age 0","predicted rec from 
 plot(fcalc,x=years,type="l",ylim=c(0,0.5))
 lines(y=(f),x=years,col=2,lty=2)
 
-#lines(y=(truef),x=years,col=2,lty=2)
+lines(y=(truef),x=years,col=2,lty=2)
 
 #redo!!!
-#save(list=ls(),file="FINALcsa_mon_mfix.RData")
+save(obs.srep,file="mon78_csa_res.RData")
 
