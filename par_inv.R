@@ -227,8 +227,7 @@ tmp<-conver %>%
   count(assessment, sel,filter) %>% 
   group_by(sel,assessment) %>% 
   transmute(filter, Percentage=n/sum(n)*100) %>%
-  pivot_wider(names_from = sel,values_from = Percentage)#%>%
-  #filter(filter=="realistic estimates")
+  pivot_wider(names_from = sel,values_from = Percentage)
 
 tmp2<-conver %>% 
   count(assessment, HD,filter) %>% 
@@ -249,6 +248,65 @@ library(xtable)
 print(xtable(tmp[,1:5]),include.rownames=FALSE)
  
 
+tmp<-conver %>% 
+  count(assessment, sel,filter) %>% 
+  group_by(sel,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = sel,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp
+
+tmp2<-conver %>% 
+  count(assessment, HD,filter) %>% 
+  group_by(HD,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = HD,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp[,1:2]==tmp2[,1:2]
+tmp<-bind_cols(tmp,tmp2[,3:5])
+
+
+tmp2<-conver %>% 
+  count(assessment, lh,filter) %>% 
+  group_by(lh,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = lh,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp[,1:2]==tmp2[,1:2]
+tmp<-bind_cols(tmp,tmp2[,3:4])
+
+
+tmp2<-conver %>% 
+  count(assessment, ts,filter) %>% 
+  group_by(ts,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = ts,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp[,1:2]==tmp2[,1:2]
+tmp<-bind_cols(tmp,tmp2[,3:4])
+
+
+tmp2<-conver %>% 
+  count(assessment, sr,filter) %>% 
+  group_by(sr,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = sr,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp[,1:2]==tmp2[,1:2]
+tmp<-bind_cols(tmp,tmp2[,3:4])
+
+
+tmp2<-conver %>% 
+  count(assessment, ar,filter) %>% 
+  group_by(ar,assessment) %>% 
+  transmute(filter, Percentage=n/sum(n)*100) %>%
+  pivot_wider(names_from = ar,values_from = Percentage)%>%
+  arrange(assessment,filter)
+tmp[,1:2]==tmp2[,1:2]
+tmp<-bind_cols(tmp,tmp2[,3:4])
+
+tmp
+print(xtable(tmp[,c(-3:-5)]),include.rownames=FALSE)
 #massive issues with selelctivity that is logistic and dome
 
 #====================================================================================
@@ -269,6 +327,14 @@ f_dat$rel_err <- (f_dat$est - f_dat$rv)/f_dat$rv
 f_dat$abrel_err <- abs((f_dat$est - f_dat$rv)/f_dat$rv)
 f_dat$rel_se <- f_dat$se/f_dat$est
 
+range(f_dat$abrel_err[f_dat$filter=="realistic_estimates"& f_dat$assessment=="SOPEM-cw" & f_dat$var=="Nend" & f_dat$lh=="her" & f_dat$sel=="kn0"& f_dat$HD=="stk_c" ])
+
+tmp_un<-f_dat[f_dat$filter=="realistic_estimates"& f_dat$assessment=="SOPEM-cw" & f_dat$var=="Nend" & f_dat$lh=="her" & f_dat$sel=="kn0"& f_dat$HD=="stk_c", ]
+
+abs((224470700-14822940)/14822940)   
+
+abs((0.0001-0.1)/0.1)   
+
 fpars<-c(unique(f_dat$var)[c(2:4)])
 npars<-unique(f_dat$var)[grep("N",unique(f_dat$var))]
 
@@ -285,7 +351,7 @@ table(f_dat$filter)
 # print(xtable(tmp),include.rownames=FALSE)
 
 
-tmp_un<-subset(f_dat,f_dat$filter== "unrealistic_estimates" & f_dat$var == "qhat")
+tmp_un<-subset(f_dat,f_dat$filter== "realistic_estimates"  & f_dat$assessment == "CSA"&  f_dat$uniqrun == "38.stk_c.1.CSA.nocut")
 table(tmp_un$lh[tmp_un$est>1e-09])
 table(tmp_un$sr[tmp_un$est>1e-09])
 table(tmp_un$ar[tmp_un$est>1e-09])
@@ -413,6 +479,12 @@ myColors <- brewer.pal(5,"Set1")
 names(myColors) <- levels(plot_dat$assessment)
 colScale <- scale_colour_manual(name = "Assessment",values = myColors)
 
+myColors2 <- rev(brewer.pal(5,"Greys"))
+names(myColors2) <- levels(plot_dat$assessment)
+myColors2[3]<-"#000000"
+colScale2 <- scale_colour_manual(name = "assessment",values = myColors2)
+
+
 # rects <- data.frame(xstart = c("csa",    "sb0"  ,  "sb0ubw", "so","soubw"), xend = c("csa","sb0" ,   "sb0ubw", "so"  ,   "soub"), col = myColors)
 fa<-unique(plot_dat$assessment)[1:3]
 
@@ -420,75 +492,6 @@ fa<-unique(plot_dat$assessment)[1:3]
 plot_dat <- plot_dat %>%
   mutate(assessment = forcats::fct_relevel(assessment, 
                                     "CSA","ASOEM-cw","ASOEM-ubw","SOPEM-cw","SOPEM-ubw"))
-dev.off()
-#####f plots
-for(selh in levels(plot_dat$sel)){
-  for(tsh in levels(plot_dat$ts)){
-    for(varh in  c("re","se")){
-      # selh<-"kn0"
-      # tsh<-"long"
-      # varh<-"fpars"
-      # 
-      tmpdat <- plot_dat %>%
-        filter(var %in% fpars,sel == selh,ts ==tsh, assessment %in% fa)%>%
-        mutate(var = forcats::fct_relevel(var, 
-                                          "F1", "Fmid", "Fend"))
-      
-      if(varh=="re"){
-        
-        
-       
-        # 
-        
-        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-        
-        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
-        print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-        )
-          
-          
-          
-          
-          
-          # )
-        dev.off()
-        
-        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-        
-        #
-        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
-         print(
-        p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-         )
-         dev.off()
-        
-        
-      }else{
-        
-        #dev.off()
-        
-        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-        
-        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
-         print(
-        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-         )
-        
-        dev.off()
-        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-        
-        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
-         print(
-        p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
-         )
-        
-       
-        dev.off()
-      }
-    }
-  }
-}
 
 
 ####=====================================
@@ -496,28 +499,40 @@ for(selh in levels(plot_dat$sel)){
 dev.off()
 #####f plots
 for(selh in levels(plot_dat$sel)){
-  for(tsh in levels(plot_dat$ts)){
+  #for(tsh in levels(plot_dat$ts)){
     for(varh in  c("re","se")){
       # selh<-"kn0"
       # tsh<-"long"
       # varh<-"re"
       # 
+      tsh<-"both"
       tmpdat <- plot_dat %>%
-        filter(var %in% npars,sel == selh,ts ==tsh)
+        filter(var %in% npars,sel == selh)
+      
+      
+      
+      dataMedian <- tmpdat%>% 
+        filter(lh=="her")%>%
+        group_by(sr,ar,HD,assessment)%>%
+        summarise(MD = round(median(rel_err),2))
       
       if(varh=="re"){
         
         
         
-        # 
+          dataMedian <- tmpdat%>% 
+        filter(lh=="her")%>%
+          group_by(sr,ar,HD,assessment)%>%
+          summarise(MD = round(median(rel_err),2))
+        
         
         pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
         
-        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) 
         print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+          p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ facet_nested(sr+ar~HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
         )
-        
+        #position = position_dodge(width = 0.8)
         
         
         
@@ -525,12 +540,17 @@ for(selh in levels(plot_dat$sel)){
         # )
         dev.off()
         
+        dataMedian <- tmpdat%>% 
+          filter(lh=="mon")%>%
+          group_by(sr,ar,HD,assessment)%>%
+          summarise(MD = round(median(rel_err),2))
+        
         pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
         
         #
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+          p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
         
         
@@ -545,13 +565,231 @@ for(selh in levels(plot_dat$sel)){
         
         p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
-          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+          p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+          
         )
         
         dev.off()
         pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"N.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
         
         p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+          
+        )
+        
+        
+        dev.off()
+      }
+    
+  }
+}
+
+####=====================================
+#F
+dev.off()
+fp<-fpars[1:2]
+#####f plots
+for(selh in levels(plot_dat$sel)){
+  #for(tsh in levels(plot_dat$ts)){
+  for(varh in  c("re","se")){
+    # selh<-"kn0"
+    # tsh<-"long"
+    # varh<-"re"
+    # 
+    tsh<-"both"
+    tmpdat <- plot_dat %>%
+      filter(var %in% fp,sel == selh,assessment %in% fa)%>%
+      mutate(var = forcats::fct_relevel(var, 
+                                        "F1", "Fend"))
+    
+    if(varh=="re"){
+      
+      
+      
+      # 
+      
+      dataMedian <- tmpdat%>% 
+        filter(lh=="her")%>%
+        group_by(sr,ar,HD,var,assessment)%>%
+        summarise(MD = round(median(rel_err),2))
+      
+      pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+      
+      p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD+var, labeller=label_both) #
+      print(
+        p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+      )
+      
+      
+      
+      
+      
+      # )
+      dev.off()
+      
+      dataMedian <- tmpdat%>% 
+        filter(lh=="mon")%>%
+        group_by(sr,ar,HD,var,assessment)%>%
+        summarise(MD = round(median(rel_err),2))
+      
+      pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+      
+      #
+      p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD+var, labeller=label_both) #
+      print(
+        p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      )
+      
+      
+      dev.off()
+      
+      
+    }else{
+      
+      #dev.off()
+      
+      pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+      
+      p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD+var, labeller=label_both) #
+      print(
+        p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+        
+      )
+      
+      dev.off()
+      pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+      
+      p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD+var, labeller=label_both) #
+      print(
+        p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+        
+      )
+      
+      
+      dev.off()
+    }
+    
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######======not used
+
+dev.off()
+#####f plots
+for(selh in levels(plot_dat$sel)){
+  
+    for(varh in  c("re","se")){
+      # selh<-"kn0"
+      # tsh<-"long"
+      # varh<-"fpars"
+      # 
+      tmpdat <- plot_dat %>%
+        filter(var %in% fpars,sel == selh,ts ==tsh, assessment %in% fa)%>%
+        mutate(var = forcats::fct_relevel(var, 
+                                          "F1", "Fmid", "Fend"))
+      
+      if(varh=="re"){
+        
+        
+        
+        # 
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        
+        
+        
+        
+        
+        # )
+        dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        #
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_violin(trim=T,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        dev.off()
+        
+        
+      }else{
+        
+        #dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        print(
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        
+        dev.off()
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=var)) + facet_nested(sr+ar~HD, labeller=label_both) #
         print(
           p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
         )
@@ -561,7 +799,282 @@ for(selh in levels(plot_dat$sel)){
       }
     }
   }
+
+
+
+
+
+
+
+
+
+####=====================================
+#stock numbers with grid arrange
+dev.off()
+#####f plots
+for(selh in levels(plot_dat$sel)){
+    for(varh in  c("re","se")){
+      # selh<-"kn0"
+      # 
+      # varh<-"re"
+      # 
+      tmpdat <- plot_dat %>%
+        filter(var %in% npars,sel == selh)
+      
+      if(varh=="re"){
+        
+        
+        
+  
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+        
+        p1 <- p+geom_violin(trim=T,position=position_dodge(1),scale="width")+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=1)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        
+        
+     
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+      
+        p2 <- p+geom_violin(trim=T,position=position_dodge(1),scale="width")+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=1)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+     
+        
+     
+        
+      }else{
+     
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+       
+        p3 <-  p+geom_violin(position=position_dodge(1),scale="width") +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+       
+     
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+       
+         p4 <- p+geom_violin(position=position_dodge(1),scale="width") +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        
+        
+      
+      }
+    }
+  
+  
+  pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/blh",selh,"F.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+  
+  
+  pp<-ggarrange(p2, p1,p4,p3, ncol=2, nrow=2, common.legend = TRUE, legend="right", align="hv",labels=c("a","b","c","d"))
+  print(pp)
+  
+  dev.off()
 }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################
+#condensed plots for ms
+
+dev.off()
+#####N plots
+      # selh<-"kn0"
+      # tsh<-"long"
+      # varh<-"re"
+      # 
+      tmpdat <- plot_dat %>%
+        filter(var %in% npars)
+     
+       # tmp_un<-subset(tmpdat,tmpdat$assessment == "CSA")
+       # table(tmpdat$lh[tmpdat$rel_err<=2])
+       # 
+       # table(tmp_un$lh[tmp_un$rel_err>2])
+       # 
+      
+      
+      varh="re"
+       
+        # 
+        # pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",varh,"Ncondense.pdf"), onefile = FALSE, paper = "special",width=12, height=12,pointsize=12)
+        # 
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sel~HD, labeller=label_both)#+ylim(-1,1)#,fill=assessment
+        #print(
+          p1<-p+geom_violin(outlier.alpha=0.1,scale="width")+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=1)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        #)
+        
+        
+        
+        
+        
+        # )
+        dev.off()
+        # 
+        # pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",varh,"Ncondense.pdf"), onefile = FALSE, paper = "special",width=12 ,height=12,pointsize=12)
+        # 
+        #
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sel~HD, labeller=label_both)#+ylim(-1,1) #,fill=assessment
+        #print(
+          p2<-p+geom_violin(outlier.alpha=0.1,scale="width")+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=1)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        #)
+        
+        
+        dev.off()
+        
+        
+      #}else{
+        
+        #dev.off()
+        varh="se"
+        # pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",varh,"Ncondense.pdf"), onefile = FALSE, paper = "special",width=12 ,height=12,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sel~HD, labeller=label_both) #,fill=assessment
+        #print(
+         p3<- p+geom_violin(position=position_dodge(1),scale="width") +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        #)
+        
+        # dev.off()
+        # pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",varh,"Ncondense.pdf"), onefile = FALSE, paper = "special",width=12, height=12,pointsize=12)
+        # 
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sel~HD, labeller=label_both) #,fill=assessment
+        #print(
+         p4<- p+geom_violin(position=position_dodge(1),scale="width") +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        #)
+        
+        
+        dev.off()
+        
+        pp<-ggarrange(p2, p1,p4,p3, ncol=2, nrow=2, common.legend = TRUE, legend="right", align="hv",labels=c("a","b","c","d"))
+        pp
+      #   
+      # gridExtra::grid.arrange( gridExtra::arrangeGrob(p1, p2, top="A"), gridExtra::arrangeGrob(p3, p4, top="B"), ncol=2)
+      # 
+ # f condensed plots#==========================================================================
+        fpars2<-fpars[c(2)]
+        dev.off()
+        #####N plots
+        # selh<-"kn0"
+        # tsh<-"long"
+        # varh<-"re"
+        # 
+        tmpdat <- plot_dat %>%
+          filter(var %in% fpars2)
+        
+        varh="re"
+        
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",varh,"Fcondense.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sel~HD+var, labeller=label_both) #
+        #print(
+        p+geom_violin(trim=TRUE,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        #)
+        
+        
+        
+        
+        
+        # )
+        dev.off()
+        
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",varh,"Fcondense.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        #
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_err,fill=assessment)) + facet_nested(sel~HD+var, labeller=label_both) #
+        print(
+          p+geom_violin(trim=TRUE,position=position_dodge(1))+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        
+        
+        dev.off()
+        
+        
+        #}else{
+        
+        #dev.off()
+        varh="se"
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",varh,"Fcondense.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sel~HD+var, labeller=label_both) #
+        print(
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        
+        dev.off()
+        pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",varh,"Fcondense.pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
+        
+        p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=assessment,y=rel_se,fill=assessment)) + facet_nested(sel~HD+var, labeller=label_both) #
+        print(
+          p+geom_boxplot(position=position_dodge(1)) +ylab("Relative standard error")+ scale_fill_brewer(palette="Greys") + theme_classic()+ theme(axis.text.x = element_text(angle = 45, hjust = 1))
+        )
+        
+        
+        dev.off()
+        
+        

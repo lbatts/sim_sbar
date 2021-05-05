@@ -25,12 +25,28 @@ setwd("C:/Users/LukeB/Documents/sim_sbar")
 #load function to create stocks
 source("par_setup.R")
 #source("funs2.R")
-# par(mfrow = c(2,1))
+
+#par(mfrow = c(2,2))
 # lapply(sce_ls$sel$her[2:3],function(x){
-#
-#   plot(c(unlist(x))~c(0:8),type="b",col=2)
-#
+# 
+#   plot(c(unlist(x))~c(0:8),type="b",col=2,xlab="age", ylab="proportion selected")
+# 
 # })
+# 
+# 
+# pdf("C:/Users/LukeB/Documents/latex_p2/4sims/sim_sel_mon1.pdf",width=8, height=8,pointsize=12)
+#   plot(c(sce_ls$sel$mon[2:3]$logistic)~c(0:20),type="b",col=2,xlab="age", ylab="proportion selected")
+# dev.off()
+# pdf("C:/Users/LukeB/Documents/latex_p2/4sims/sim_sel_mon2.pdf",width=8, height=8,pointsize=12)
+# plot(c(sce_ls$sel$mon[2:3]$dn)~c(0:20),type="b",col=2,xlab="age", ylab="proportion selected")
+# dev.off()
+# pdf("C:/Users/LukeB/Documents/latex_p2/4sims/sim_sel_her1.pdf",width=8, height=8,pointsize=12)
+# plot(c(sce_ls$sel$her[2:3]$logistic)~c(0:8),type="b",col=2,xlab="age", ylab="proportion selected")
+# dev.off()
+# pdf("C:/Users/LukeB/Documents/latex_p2/4sims/sim_sel_her2.pdf",width=8, height=8,pointsize=12)
+# plot(c(sce_ls$sel$her[2:3]$dn)~c(0:8),type="b",col=2,xlab="age", ylab="proportion selected")
+# dev.off()
+
 
 sce_ls$nm$mon
 sce_ls$nm$her$age_vary

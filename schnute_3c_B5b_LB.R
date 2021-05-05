@@ -9,7 +9,7 @@ rm(list=ls())
 ##load("scenario8_stkstored.RData")
 #load("res_10iters_sce4_8_new.RData")
 
-load(("res_100iters_sce3_7_n.RData"))  # Anglefish
+load(("res_10iters_sce3_7_n.RData"))  # Anglefish
 #load(("res_10iters_sce4_8_new2.RData")) # Herring
 
 ## selectivity scenario

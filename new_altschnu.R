@@ -3,7 +3,7 @@
 library(sbar)
 catch_kg1<-Ct
 obs<-matrix(It,nrow=1)
-mean_wts <-tmpres[[scen]]$stk_rc$nocut$mwts[,,it]
+mean_wts <-tmpres[[scen]]$stk_c$nocut$mwts[,,it]
 no.years<-length(catch_kg1)
 
 data_tmb <- list(
@@ -42,7 +42,7 @@ obj <- TMB::MakeADFun(
   silent = TRUE,
   DLL = "sbar_TMBExports")
 
-#tmp<-obj$fn()
+obj$fn()
 
 
 (opt <- nlminb(start=obj$par,objective=obj$fn,gradient=obj$gr,control = list(iter.max=100000,eval.max=100000,rel.tol=1e-10)))

@@ -136,7 +136,10 @@ library(RColorBrewer)
 myColors <- brewer.pal(5,"Set1")
 names(myColors) <- levels(plot_dat$assessment)
 colScale <- scale_colour_manual(name = "Assessment",values = myColors)
-
+library(scales)
+pal <- rgb(0.374, 0.183, 0.528)
+show_col(pal)
+show_col(myColors)
 # tmp2
 
 head(plot_dat)
@@ -162,7 +165,7 @@ for(selh in levels(plot_dat$sel)){
 
   p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both,scales="free_x") #
   print(
-    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
+    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
         )
   dev.off()
   
@@ -170,7 +173,7 @@ for(selh in levels(plot_dat$sel)){
   
   p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
   print(
-    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
+    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
     )
   dev.off()
 
@@ -186,7 +189,7 @@ pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), 
 
 p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
 print(
-  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ theme(axis.text.x = element_text(angle = 45, hjust = 1))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
+  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
   )
   dev.off()
 #
@@ -194,7 +197,7 @@ setEPS()
 pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
 p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
 print(
-  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ theme(axis.text.x = element_text(angle = 45, hjust = 1))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
+  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
 )
 dev.off()
 }
