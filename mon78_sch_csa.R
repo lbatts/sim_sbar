@@ -194,6 +194,7 @@ obs[1,]<-c(colSums(index(tun$FR_IE_IBTS)[,years]*catch.wt(stock)[,years],na.rm=T
 obs[2,4:16] <-c(colSums(index(tun$IE_MONKSURVEY)[mon_a,mon_y]*catch.wt(stock)[mon_a,mon_y],na.rm=T))
 obs[3,]<-c(colSums(index(tun$`SP-PORC`)[,sp_y]*catch.wt(stock)[,sp_y],na.rm=T))
 
+obs[obs==0]<-NA
 
 catch_kg1<-c(1e3*catch(a4afit)[,years])
 par(mfrow=c(2,2))
@@ -233,7 +234,7 @@ plot(obs.srep1[row.names(obs.srep1)=="biomass","Estimate"],col=2,type="b")
 
 
 obj2<-schnute_obserror(version=2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = cw_mean_wts, tsp = 0, rho = cw_rho, W = cw_W ,  start_indexsigma = c(0.1,0.1,0.1),
-                       start_sigma = exp(-0.25),start_q = rep(2e-8,3), start_f_calc = 0.5, start_catchsigma = 0.01,
+                       start_sigma = exp(-0.25),start_q = rep(2e-8,3), start_f_calc = 0.5, start_catchsigma = 0.1,
                        fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE,
                        fix_catchsigma = T,ind_l_wt=c(1,1,1))
 
@@ -265,7 +266,7 @@ lines(obs.srep2[row.names(obs.srep2)=="biomass","Estimate"],col=2,type="b")
 
 
 
-obj3<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = ubw_mean_wts, tsp = 0, rho = ubw_rho, W = ubw_W , start_q = c(2e-8,2e-8,2e-8), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = TRUE, fix_indexsigma = FALSE,ind_l_wt=c(1,1,1))
+obj3<-schnute_orig(version = 2,catchkg = catch_kg1, indiceskg = obs, ts = c(0.875,1,0.875), mwts = ubw_mean_wts, tsp = 0, rho = ubw_rho, W = ubw_W , start_q = c(2e-8,2e-8,2e-8), start_indexsigma = c(0.1,0.1,0.1), start_sigma = exp(-0.25), fix_sigma = T, fix_indexsigma = FALSE,ind_l_wt=c(1,1,1))
 
 obj3$fn()
 
@@ -482,7 +483,7 @@ which(truebio ==max(truebio))
 
 
 
-save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,file="mon78_schnute_res.Rdata")
+save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,catch_kg1,obs,file="mon78_schnute_res.Rdata")
 
 B0
 c(colSums(stock.n(a4afit)[,"2003"]*catch.wt(a4afit)[,"2003"]))*1e3
@@ -495,23 +496,23 @@ legend("topright",lty=c(1,2),col=c("red","blue"),legend=c("Schnute","a4a"),cex=0
 
 #redo!!!
 #save(list=ls(),file="FINAL_schnute_mon_sigmafix.RData")
-library(corrplot)
-colp <- colorRampPalette(rev(c("#67001F", "#B2182B", "#D6604D", 
-                               "#F4A582", "#FDDBC7", "#FFFFFF", "#D1E5F0", "#92C5DE", 
-                               "#4393C3", "#2166AC", "#053061"))) ## intiutively think cold is negative and blue
-
-corrplot(cov2cor(obs.rep$cov.fixed), method = "ellipse", type = "upper", col = colp(200), addCoef.col = "black", diag = T,number.cex=0.25,tl.cex = 0.6 )
-
-dev.off()
-setEPS()
-postscript("C:/Users/LukeB/OneDrive - GMIT/Desktop/Desktop/DD_assesssment_ etc/v1MON_corpar_sel.eps", horizontal = FALSE, onefile = FALSE, paper = "special",width=6, height=6,pointsize=12)
-
-dim(obs.rep$cov.fixed)
-head(obs.rep$cov.fixed)
-dms<-c(1:5,13,20:23)
-corrplot(cov2cor(obs.rep$cov.fixed[dms,dms]), method = "ellipse", type = "upper", col = colp(200), addCoef.col = "black", diag = T,number.cex=0.9,tl.cex = 0.6)
-dev.off()
-
+# library(corrplot)
+# colp <- colorRampPalette(rev(c("#67001F", "#B2182B", "#D6604D", 
+#                                "#F4A582", "#FDDBC7", "#FFFFFF", "#D1E5F0", "#92C5DE", 
+#                                "#4393C3", "#2166AC", "#053061"))) ## intiutively think cold is negative and blue
+# 
+# corrplot(cov2cor(obs.rep$cov.fixed), method = "ellipse", type = "upper", col = colp(200), addCoef.col = "black", diag = T,number.cex=0.25,tl.cex = 0.6 )
+# 
+# dev.off()
+# setEPS()
+# postscript("C:/Users/LukeB/OneDrive - GMIT/Desktop/Desktop/DD_assesssment_ etc/v1MON_corpar_sel.eps", horizontal = FALSE, onefile = FALSE, paper = "special",width=6, height=6,pointsize=12)
+# 
+# dim(obs.rep$cov.fixed)
+# head(obs.rep$cov.fixed)
+# dms<-c(1:5,13,20:23)
+# corrplot(cov2cor(obs.rep$cov.fixed[dms,dms]), method = "ellipse", type = "upper", col = colp(200), addCoef.col = "black", diag = T,number.cex=0.9,tl.cex = 0.6)
+# dev.off()
+# 
 
 
 
@@ -535,7 +536,7 @@ obs[1,]<-c(colSums(index(tun$FR_IE_IBTS)[1,years],na.rm=T))
 obs[2,]<-c(colSums(index(tun$FR_IE_IBTS)[2:10,years],na.rm=T))
 obs[3,4:16] <-c(colSums(index(tun$IE_MONKSURVEY)[mon_a,mon_y],na.rm=T))
 obs[4,]<-c(colSums(index(tun$`SP-PORC`)[,sp_y],na.rm=T))
-
+obs[obs==0]<-NA
 selrec<-matrix(1,nrow=1,ncol=no.years)# number of rows is number of rec survey indices
 
 obj<- csa(catch_n = catch.no, indices_no = obs, indices_att = att, ts = timing , selrec = selrec, start_q = rep(2e-8,3), start_surveycv = 0.1, start_catchcv = 0.1, start_nmort = 0.25, start_f_calc = 0.5,fix_nmort = T, fix_prec0 = F, fix_surveycv = F, fix_catchcv = T)
@@ -617,5 +618,5 @@ lines(y=(f),x=years,col=2,lty=2)
 lines(y=(truef),x=years,col=2,lty=2)
 
 #redo!!!
-save(obs.srep,file="mon78_csa_res.RData")
+save(catch.no,obs.srep,obs,file="mon78_csa_res.RData")
 

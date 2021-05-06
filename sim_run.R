@@ -163,6 +163,18 @@ registerDoParallel(cl)
             stk_ow <- fwd(stk_ow,fbar = fbar(stk_ow)[,-1] , sr=stk_eq, deviances = ar1rlnorm(rho=rho,iters=iters, years=1:no.years, margSD=sr_sd))
             stk_rc <- fwd(stk_rc,fbar = fbar(stk_rc)[,-1] , sr=stk_eq, deviances = ar1rlnorm(rho=rho,iters=iters, years=1:no.years, margSD=sr_sd))
             print("set up the three stocks and fwd with fbars")
+            
+            # all.equal(c(quantMeans(harvest(iter(stk_c,2)))[,2]),c(fbar_c[,2]))
+            # 
+            # c((colSums(harvest(iter(stk_c,2))[,2]*stock.n(iter(stk_c,2))[,2])/colSums(stock.n(iter(stk_c,2))[,2])))
+            # 
+            # all.equal(c(quantMeans(harvest(iter(stk_rc,2)))[,5]),c(fbar_rc[,5]))
+            # 
+            # c((colSums(harvest(iter(stk_rc,2))[,5]*stock.n(iter(stk_rc,2))[,5])/colSums(stock.n(iter(stk_rc,2))[,5])))
+            # 
+            # 
+            # all.equal(c(quantMeans(harvest(iter(stk_ow,2)))[,2]),c(fbar_ow[,2]))
+            # 
             # plot(stk_c)
             # plot(stk_ow)
             # # plot(stk_rc)
