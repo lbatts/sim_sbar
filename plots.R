@@ -94,7 +94,7 @@ subgg<-obs.srep[rownames(obs.srep)=="logpred_survey"|rownames(obs.srep)=="lnc",]
   #===================================================================================
   #comparison
   rm(list=ls())
-
+library(ggplot2)
   load("mon78_schnute_res.RData")
   
   subgg<-obs.srep4[rownames(obs.srep4)=="lnN"|rownames(obs.srep4)=="logf_calc"|rownames(obs.srep4)=="lnPR"|rownames(obs.srep4)=="lnR",]#,"phat","rhat","f_calc"),]
@@ -179,7 +179,7 @@ subgg<-obs.srep[rownames(obs.srep)=="logpred_survey"|rownames(obs.srep)=="lnc",]
   datgg$param[datgg$param=="lnR"| datgg$param=="logrhat"]<-("Recruitment numbers")
   
   datgg$param<-factor(datgg$param)
-  levels(datgg$param)<-c(expression("Fishing mortality"[""]),expression("Population numbers"[""]),expression("Previously exploited/ post-recruit numbers"[""]), expression("Recruitment numbers"[""]))
+  levels(datgg$param)<-c(expression("Fishing mortality"[""]),expression("Population numbers"[""]),expression("Post-recruit numbers"[""]), expression("Recruitment numbers"[""]))
   levels(datgg$param)[1]
   
   #plot
@@ -198,12 +198,12 @@ subgg<-obs.srep[rownames(obs.srep)=="logpred_survey"|rownames(obs.srep)=="lnc",]
   
   p2<-p2+theme_bw()+theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.text.y = element_text(size=8), axis.line = element_line(colour = "black"),strip.background =element_rect(color="black",fill="lightgrey"))+labs(y="", x="Year")
   
-  pp<-ggpubr::ggarrange(p1,p2, ncol=2, nrow=1, common.legend = TRUE, legend="right",labels = c("A", "B"))
+  pp<-ggpubr::ggarrange(p1,p2, ncol=2, nrow=1, common.legend = TRUE, legend="bottom",labels = c("A", "B"))
   
   
   
   dev.off()
-  pdf("C:/Users/LukeB/OneDrive - GMIT/latex_p2/4sims/mon_comp1.pdf",  paper = "special",width=12, height=8,pointsize=12)
+  pdf("C:/Users/LukeB/OneDrive - GMIT/latex_p2/4sims/mon_comp1.pdf",  paper = "special",width=9, height=5,pointsize=14)
   pp
   dev.off()
   

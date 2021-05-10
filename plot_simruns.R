@@ -119,6 +119,7 @@ plot_dat<-f_dat %>%
   mutate(assessment = forcats::fct_relevel(assessment, 
                                            "CSA","ASOEM-cw","ASOEM-ubw","SOPEM-cw","SOPEM-ubw"))
 
+levels(plot_dat$assessment) <- c("CSA",expression("S1"["c"]),expression("S1"["u"]),expression("S0"["c"]),expression("S0"["u"]))
 
 levels(factor(plot_dat$assessment))
 levels(factor(plot_dat$Error))
