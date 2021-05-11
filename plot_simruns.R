@@ -14,10 +14,8 @@ library(reshape2)
 library(tidyr)
 library(dplyr)
 
-
-#This is a test
-
-setwd("C:/Users/LukeB/Documents/sim_sbar")
+#setwd("C:/Users/LukeB/Documents/sim_sbar")
+setwd("/home/luke/Documents/sim_sbar")
 source("plot_funs.R")
 #load("res_10iters_allsce.Rdata")
 #
@@ -28,8 +26,10 @@ source("plot_funs.R")
 # lines(tmpres[[5]]$stk_c$mwts[1,,2],col="blue",lty=2)
 # lines(tmpres[[5]]$stk_c$mwts[3,,2],col="red",lty=2)
 # lines(tmpres[[5]]$stk_c$mwts[2,,2],col="green",lty=2)
+#load("res_10iters_sce3_7_n.RData")
+load("res_100iters_allsce_new.RData")
 
-load("res_100iters_allsce_new.Rdata")
+
 #quick sanity check that the right number of iters are being stored
 dim(tmpres[[1]]$stk_c$nocut$mwts)
 
@@ -57,6 +57,7 @@ dim(bigdat)
 data_table_1 <- data.table::data.table(bigdat, key="sce_id")
 sce$sce_id<-as.integer(row.names(sce))
 str(sce)
+
 data_table_2 <- data.table::data.table(sce, key="sce_id")
 dim(bigdat)
 f_dat<-merge(data_table_1, data_table_2)
@@ -135,79 +136,126 @@ library(ggh4x)
 #f_dat<-f_dat[which(!is.na(f_dat$value)),]
 #   tmpdat <- plot_dat %>%
 # filter(sce_id == "8")
-
+library(scales)
 library(RColorBrewer)
 myColors <- brewer.pal(5,"Set1")
 names(myColors) <- levels(plot_dat$assessment)
-colScale <- scale_colour_manual(name = "Assessment",values = myColors)
-library(scales)
+colScale <- scale_colour_manual(name = "Assessment",values = myColors,labels = parse_format())
+
 pal <- rgb(0.374, 0.183, 0.528)
 show_col(pal)
 show_col(myColors)
 # tmp2
 
 head(plot_dat)
+colnames(plot_dat)[7:11]<-c("LH","TS","SEL","AR","SR")
 dev.off()
 ##comparing knife edge only
 #stat_summary(aes(y=rv,shape="Real values",linetype="Real values"),col=1, fun=median, geom="line")
 
-for(selh in levels(plot_dat$sel)){
-  for(tsh in levels(plot_dat$ts)){
+width_measured <- 8.5
+height_measured <- 11.5
+
+#for(selh in levels(plot_dat$sel)){
+  for(tsh in levels(plot_dat$TS)){
     for(varh in  c("stk_no","f")){
       # selh<-"kn0"
       # tsh<-"long"
       # varh<-"f"
+      #varh<-"stk_no"
       # 
-      tmpdat <- plot_dat %>%
-  filter(var == varh,sel == selh,ts ==tsh)
+      
+      dataMedian <- plot_dat%>% 
+        filter(var == varh,TS ==tsh)%>%
+        group_by(LH,SEL,year,SR,AR,HD,assessment)%>%
+        summarise(MD = round(median(value),2))
+      
+      #which(dataMedian$MD==max(dataMedian$MD))
+      #dataMedian[2459,]
+      her_mxy<-ceiling(max(dataMedian$MD[dataMedian$LH=="her"]))
+      her_mny<-floor(min(dataMedian$MD[dataMedian$LH=="her"]))
+      her_brks<-c(signif(her_mxy/3,1),(signif(her_mxy/3,1))*2,(signif(her_mxy/3,1))*3)
+      
+      mon_mxy<-ceiling(max(dataMedian$MD[dataMedian$LH=="mon"]))
+      mon_mny<-floor(min(dataMedian$MD[dataMedian$LH=="mon"]))
+      mon_brks<-c(signif(mon_mxy/3,1),(signif(mon_mxy/3,1))*2,(signif(mon_mxy/3,1))*3)
+      
+      
+ if(varh=="stk_no"){
+    ylab <- "Stock numbers"
+ }else{
+   ylab <- "Fishing mortality"}
+    
+      selh<-"kn0"
+    tmpdat <- plot_dat %>%
+      filter(var == varh,SEL == selh,TS ==tsh)
+   
+    
+p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
 
-      if(varh=="f"){
-  ylab <- "Fishing mortality"
+  p1 <- p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  
+p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+
+  p2 <- p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+
+  selh<-"logistic"
+  tmpdat <- plot_dat %>%
+    filter(var == varh,SEL == selh,TS ==tsh)
+  
+  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p3 <- p3+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  
+  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p4 <- p4+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
   
   
-  pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-
-  p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both,scales="free_x") #
-  print(
-    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
-        )
+  selh<-"dome"
+  tmpdat <- plot_dat %>%
+    filter(var == varh,SEL == selh,TS ==tsh)
+  
+  p5<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p5 <- p5+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  
+  p6<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p6 <- p6+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  
+  
+  pp<-ggpubr::ggarrange(p2,p1,p4,p3,p6,p5, ncol=2, nrow=3, common.legend = TRUE, legend="bottom",labels = c("A", "B","C","D","E","F"))
+  pp
+  
+  #flpath<-paste0("C:/Users/LukeB/OneDrive - GMIT/latex_p2/4sims/bothsp",tsh,varh,"time.pdf")
+  flpath<-paste0("/home/luke/Documents/latex_p2_2/latex_p2/4sims/bothsp",tsh,varh,"time.pdf")
+  dev.off()
+  pdf(file= flpath,  width=width_measured, height=height_measured,pointsize=12)
+  print(pp)
   dev.off()
   
-  pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
   
-  p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
-  print(
-    p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
-    )
-  dev.off()
-
-
-
-
-  }else{
-    ylab <- "stock numbers"
-
-#dev.off()
-
-pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/her",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-
-p<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
-print(
-  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent"))+guides(linetype=guide_legend(override.aes = list(color ="transparent") ),color = guide_legend(override.aes = list(color ="transparent") ) )
-  )
-  dev.off()
-#
-setEPS()
-pdf(paste0("C:/Users/LukeB/Documents/latex_p2/4sims/mon",tsh,selh,varh,".pdf"), onefile = FALSE, paper = "special",width=8, height=6,pointsize=12)
-p<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
-print(
-  p+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
-)
-dev.off()
-}
     }
-  }
 }
+
+
+# 
+# varh<-"f"
+# tmpdat <- plot_dat %>%
+#   filter(var == varh,sel == selh,ts ==tsh)
+# 
+# ylab <- "Fishing mortality"
+# 
+# p1<-ggplot(tmpdat[tmpdat$lh=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both,scales="free_x") #
+# 
+# p1<-p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
+# 
+# p2<-ggplot(tmpdat[tmpdat$lh=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(sr+ar~HD, labeller=label_both) #
+# 
+# p2<-p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))
+# 
+
 
 #check<-subset(plot_dat,sce_id==3)
 #save(check,file="check.RData")
