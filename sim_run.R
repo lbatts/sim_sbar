@@ -6,7 +6,7 @@
 #Feb 2021
 #===================================
 rm(list=ls())
-
+#install.packages("FLife",repos="http://flr-project.org/R")
 #devtools::install_github("lbatts/sbar")
 library(FLCore)
 library(FLasher)
@@ -19,8 +19,8 @@ library(sbar)
 library(doParallel)
 #library(TMBhelper)
 
-setwd("C:/Users/LukeB/Documents/sim_sbar")
-
+#setwd("C:/Users/LukeB/Documents/sim_sbar")
+setwd("/home/luke/Documents/sim_sbar")
 
 #load function to create stocks
 source("par_setup.R")
@@ -71,7 +71,7 @@ registerDoParallel(cl)
 #  #
  #select<- c(3,7)
  
- #1:dim(sce)[1]
+ #
  tmpres <- foreach(i=1:dim(sce)[1], .packages = (.packages())) %dopar% {#   ,.combine=cbind
    set.seed(seedlist[i])
    lh<-sce$lh[i]
@@ -187,8 +187,8 @@ registerDoParallel(cl)
             
             #plot(FLStocks(constant = stk_c, oneway = stk_ow, rollercoaster =stk_rc))
             
-            q1 <- 1e-6 * FLQuant(c(stk_sel),
-                                 dim = dim(stk_c), dimnames = dimnames(landings.n(stk_c)))
+             q1 <- 1e-6 #* FLQuant(c(stk_sel),
+            #                      dim = dim(stk_c), dimnames = dimnames(landings.n(stk_c)))
             ## measurement error on index
             eps_ind <- list()
             eps_ind <- lapply(1:3,function(x){FLQuant(rlnorm(n = prod(dim(stk_c)), sdlog = 0.3), dim = dim(stk_c), dimnames = dimnames(landings.n(stk_c)))
@@ -258,13 +258,13 @@ registerDoParallel(cl)
  
  #save(tmpres,sce,file="res_10iters_allsce.RData")
 
-  save(tmpres,sce,file="res_100iters_allsce_new.RData")
+  save(tmpres,sce,file="res_100iters_allsce_new_2.RData")
 
  
  
  
  
-  #save(tmpres,sce,file="res_100iters_sce3_7_n.RData")
+  #save(tmpres,sce,file="res_10iters_sce3_7_n_2.RData")
   # save(tmpres,sce,file="res_10iters_sce4_8_n.RData")
  #
  #

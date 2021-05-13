@@ -1,13 +1,14 @@
 library(dplyr)
 library(tidyr)
+#install.packages("FLa4a",repos="http://flr-project.org/R",dependencies=TRUE)
 
 library(FLCore)
 #install.packages('patchwork')
 #library(patchwork)
 library(sbar)
 rm(list=ls())
-setwd("C:/Users/LukeB/Documents/sim_sbar")
-
+#setwd("C:/Users/LukeB/Documents/sim_sbar")
+setwd("/home/luke/Documents/sim_sbar")
 K=0.1075
 Linf=171
 t0=-1e-6
@@ -23,10 +24,10 @@ ubw_rho <- an(coef(fit_waa)[2])
 plot(waa[-length(waa)], waa[-1])
 abline(c(ubw_W, ubw_rho))
 
-load("mon78_a4a.RData")
+load("mon78_a4a.Rdata")
 a4afit<-stock+fit1
 rm(stock)
-load("mon78_input.RData")
+load("mon78_input.Rdata")
 
 #checks
 
@@ -37,11 +38,10 @@ index(tun.sel$`SP-PORC`)[1:5,]-index(tun$`SP-PORC`)[3:7,]
 
 
 
-
+no.years<-length(years)
 starty <- 2003-1986+1
 endy <-starty + no.years-1
 years<-ac(2003:2018)
-no.years<-length(years)
 ###plot mean weights etc
 
 catchkg1<-colSums(catch.n(a4afit)[,years]*catch.wt(a4afit)[,years],na.rm=T)
@@ -483,7 +483,7 @@ which(truebio ==max(truebio))
 
 
 
-save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,catch_kg1,obs,file="mon78_schnute_res.Rdata")
+#save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,catch_kg1,obs,file="mon78_schnute_res.Rdata")
 
 B0
 c(colSums(stock.n(a4afit)[,"2003"]*catch.wt(a4afit)[,"2003"]))*1e3
@@ -618,5 +618,5 @@ lines(y=(f),x=years,col=2,lty=2)
 lines(y=(truef),x=years,col=2,lty=2)
 
 #redo!!!
-save(catch.no,obs.srep,obs,file="mon78_csa_res.RData")
+#save(catch.no,obs.srep,obs,file="mon78_csa_res.RData")
 

@@ -5,8 +5,10 @@
 # Session Data files
 .RData
 res_100iters_allsce_new.RData
+res_100iters_allsce_new_2.RData
 check.RData
 res_10iters_allsce.RData
+res_10iters_sce3_7_n_2.RData
 
 # User-specific files
 .Ruserdata

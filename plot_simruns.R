@@ -27,7 +27,7 @@ source("plot_funs.R")
 # lines(tmpres[[5]]$stk_c$mwts[3,,2],col="red",lty=2)
 # lines(tmpres[[5]]$stk_c$mwts[2,,2],col="green",lty=2)
 #load("res_10iters_sce3_7_n.RData")
-load("res_100iters_allsce_new.RData")
+load("res_100iters_allsce_new_2.RData")
 
 
 #quick sanity check that the right number of iters are being stored
@@ -155,7 +155,7 @@ dev.off()
 
 width_measured <- 8.5
 height_measured <- 11.5
-
+colnames(plot_dat)[14]<-"Assessment"
 #for(selh in levels(plot_dat$sel)){
   for(tsh in levels(plot_dat$TS)){
     for(varh in  c("stk_no","f")){
@@ -167,7 +167,7 @@ height_measured <- 11.5
       
       dataMedian <- plot_dat%>% 
         filter(var == varh,TS ==tsh)%>%
-        group_by(LH,SEL,year,SR,AR,HD,assessment)%>%
+        group_by(LH,SEL,year,SR,AR,HD,Assessment)%>%
         summarise(MD = round(median(value),2))
       
       #which(dataMedian$MD==max(dataMedian$MD))
@@ -191,45 +191,45 @@ height_measured <- 11.5
       filter(var == varh,SEL == selh,TS ==tsh)
    
     
-p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
 
-  p1 <- p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  p1 <- p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
   
-p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
 
-  p2 <- p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p2 <- p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
 
   selh<-"logistic"
   tmpdat <- plot_dat %>%
     filter(var == varh,SEL == selh,TS ==tsh)
   
-  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p3 <- p3+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  p3 <- p3+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
   
-  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p4 <- p4+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p4 <- p4+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
   
   
   selh<-"dome"
   tmpdat <- plot_dat %>%
-    filter(var == varh,SEL == selh,TS ==tsh)
+    filter(var == varh,SEL == selh,TS ==tsh, Assessment!="\"S1\"[\"c\"]")
   
-  p5<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p5<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p5 <- p5+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  p5 <- p5+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
   
-  p6<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p6<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p6 <- p6+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=assessment,col=assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p6 <- p6+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
   
   
   pp<-ggpubr::ggarrange(p2,p1,p4,p3,p6,p5, ncol=2, nrow=3, common.legend = TRUE, legend="bottom",labels = c("A", "B","C","D","E","F"))
   pp
   
   #flpath<-paste0("C:/Users/LukeB/OneDrive - GMIT/latex_p2/4sims/bothsp",tsh,varh,"time.pdf")
-  flpath<-paste0("/home/luke/Documents/latex_p2_2/latex_p2/4sims/bothsp",tsh,varh,"time.pdf")
+  flpath<-paste0("/home/luke/Documents/latex_p2/4sims/bothsp",tsh,varh,"time.pdf")
   dev.off()
   pdf(file= flpath,  width=width_measured, height=height_measured,pointsize=12)
   print(pp)
