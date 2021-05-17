@@ -450,8 +450,8 @@ colnames(tmp2)
 
 tmp$kn0_stk_rc_Fend_MARE==tmp2$kn0_stk_rc_Fend
 tmp$logistic_stk_c_Nend_MARE==tmp2$logistic_stk_c_Nend
-
-tmp
+dim(tmp)
+tmp[,10:20]
 print(xtable(tmp,digits=c(1,1,1,rep(2,18)),include.rownames=FALSE))
 
 
@@ -491,6 +491,7 @@ levels(plot_dat$assessment) <- c("CSA",expression("S1"["c"]),expression("S1"["u"
 myColors <- brewer.pal(5,"Set1")
 names(myColors) <- levels(plot_dat$assessment)
 colScale <- scale_colour_manual(name = "Assessment",values = myColors,labels = parse_format())
+colScale_fill <- scale_fill_manual(name = "Assessment",values = myColors,labels = parse_format())
 
 myColors2 <- rev(brewer.pal(5,"Greys"))
 names(myColors2) <- levels(plot_dat$assessment)
@@ -501,6 +502,9 @@ fa<-levels(plot_dat$assessment)[1:3]
 
 colnames(plot_dat)[6:10]<-c("LH","TS","SEL","AR","SR")
 colnames(plot_dat)[13]<-"Assessment"
+levels(plot_dat$LH)<- c("large demersal","small pelagic") 
+levels(plot_dat$HD)<- c("c","ow","rc") 
+
 ####=====================================
 #stock numbers
 dev.off()
@@ -539,7 +543,7 @@ dev.off()
 #       
 #       p<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_err,fill=Assessment))
 #       print(
-#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ facet_nested(SR+AR~HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ facet_nested(SR+AR~HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #       )
 #       #position = position_dodge(width = 0.8)
 #       
@@ -559,7 +563,7 @@ dev.off()
 #       #
 #       p<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_err,fill=Assessment)) + facet_nested(SR+AR~HD, labeller=label_both) #
 #       print(
-#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 #       )
 #       
 #       
@@ -574,7 +578,7 @@ dev.off()
 #       
 #       p<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~HD, labeller=label_both) #
 #       print(
-#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #         
 #       )
 #       
@@ -583,7 +587,7 @@ dev.off()
 #       
 #       p<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~HD, labeller=label_both) #
 #       print(
-#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #         
 #       )
 #       
@@ -627,7 +631,7 @@ dev.off()
 #
 #       p<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_err,fill=Assessment)) + facet_nested(SR+AR~HD+var, labeller=label_both) #
 #       print(
-#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #       )
 #
 #
@@ -647,7 +651,7 @@ dev.off()
 #       #
 #       p<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_err,fill=Assessment)) + facet_nested(SR+AR~HD+var, labeller=label_both) #
 #       print(
-#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#         p+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+geom_text_repel(data = dataMedian, aes(x=Assessment, y=MD, label = MD), size = 3,nudge_x=0.5,nudge_y=2,force=2.5)+ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))
 #       )
 #
 #
@@ -662,7 +666,7 @@ dev.off()
 #
 #       p<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~HD+var, labeller=label_both) #
 #       print(
-#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #
 #       )
 #
@@ -671,7 +675,7 @@ dev.off()
 #
 #       p<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~HD+var, labeller=label_both) #
 #       print(
-#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
+#         p+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys")+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1))+theme(legend.title = element_blank(), legend.text = element_text(color = "white"),legend.key = element_rect(colour = "transparent", fill ="transparent"))+guides(fill = guide_legend(override.aes = list(color ="transparent", fill ="transparent") ) )
 #
 #       )
 #
@@ -693,7 +697,7 @@ height_measured <- 8.5
 ####=====================================
 #stock numbers
 dev.off()
-#####f plots
+##### plots
 for(selh in levels(plot_dat$SEL)){
   #for(tsh in levels(plot_dat$ts)){
   # selh<-"kn0"
@@ -711,29 +715,29 @@ for(selh in levels(plot_dat$SEL)){
     filter(var %in% npars,SEL == selh)
   }
   
-  p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_err,fill=Assessment)) 
+  p1<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=Assessment,y=rel_err,fill=Assessment)) 
   
-  p1<-p1+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
+  p1<-p1+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ colScale_fill+ colScale+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
   
   #+theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
   #
-  p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_err,fill=Assessment)) 
+  p2<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=Assessment,y=rel_err,fill=Assessment)) 
   
-  p2<-p2+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
+  p2<-p2+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD, labeller=label_both) +ylab("Relative error") + theme_classic()+ colScale_fill+ colScale+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
   
   
   #dev.off()
   
-  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p3<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p3<- p3+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,1))
+  p3<- p3+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ colScale_fill+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,1))
   
   
   
-  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p4<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p4<- p4+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,1))
+  p4<- p4+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ colScale_fill+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,1))
   
   
   pp<-ggpubr::ggarrange(p2,p1,p4,p3, ncol=2, nrow=2, common.legend = TRUE, legend="bottom",labels = c("A", "B","C","D"))
@@ -777,30 +781,30 @@ for(selh in levels(plot_dat$SEL)){
   }
   
   
-  p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_err,fill=Assessment)) 
+  p1<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=Assessment,y=rel_err,fill=Assessment)) 
   
-  p1<-p1+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD+var, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1.5))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
+  p1<-p1+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD+var, labeller=label_both) +ylab("Relative error") + theme_classic()+ colScale_fill+ colScale+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1.5))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
   
   #+theme(axis.text.x = element_text(angle = 45, hjust = 1))
   
   
   #
-  p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_err,fill=Assessment)) 
+  p2<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=Assessment,y=rel_err,fill=Assessment)) 
   
-  p2<-p2+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD+var, labeller=label_both) +ylab("Relative error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1.5))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
+  p2<-p2+geom_violin(trim=T,position=position_dodge(1),scale="width",width=.8)+geom_abline(slope=0,intercept=0,linetype="dashed")+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ facet_nested(SR+AR~LH+HD+var, labeller=label_both) +ylab("Relative error") + theme_classic()+ colScale_fill+ colScale+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(-1,1.5))+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))
   
   
   #dev.off()
   
-  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD+var, labeller=label_both) #
+  p3<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD+var, labeller=label_both) #
   
-  p3<- p3+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,.7))
+  p3<- p3+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ colScale_fill+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,.7))
   
   
   
-  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD+var, labeller=label_both) #
+  p4<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=Assessment,y=rel_se,fill=Assessment)) + facet_nested(SR+AR~LH+HD+var, labeller=label_both) #
   
-  p4<- p4+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(aes(col=Assessment),fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ scale_fill_brewer(palette="Greys",labels = parse_format())+ colScale2+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,.7))
+  p4<- p4+geom_violin(position=position_dodge(1),scale="width",width=.8)+ stat_summary(col=1,fun=median, geom="point", shape=23,position=position_dodge(1), size=2)+ylab("Relative standard error") + theme_classic()+ colScale_fill+ colScale+theme(axis.text.x = element_text(angle = 45, hjust = 1,colour = "black"))+scale_x_discrete(labels = parse_format())+coord_cartesian(ylim=c(0,.7))
   
   
   pp<-ggpubr::ggarrange(p2,p1,p4,p3, ncol=2, nrow=2, common.legend = TRUE, legend="bottom",labels = c("A", "B","C","D"))

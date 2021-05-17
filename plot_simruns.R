@@ -125,6 +125,7 @@ plot_dat<-f_dat %>%
 
 levels(plot_dat$assessment) <- c("CSA",expression("S1"["c"]),expression("S1"["u"]),expression("S0"["c"]),expression("S0"["u"]))
 
+
 levels(factor(plot_dat$assessment))
 levels(factor(plot_dat$Error))
 #unique(with(plot_dat, interaction(sel,aorif, drop=TRUE)))  
@@ -149,6 +150,10 @@ show_col(myColors)
 
 head(plot_dat)
 colnames(plot_dat)[7:11]<-c("LH","TS","SEL","AR","SR")
+table(plot_dat$LH)
+levels(plot_dat$LH)<- c("large demersal","small pelagic") 
+levels(plot_dat$HD)<- c("c","ow","rc") 
+
 dev.off()
 ##comparing knife edge only
 #stat_summary(aes(y=rv,shape="Real values",linetype="Real values"),col=1, fun=median, geom="line")
@@ -161,68 +166,118 @@ colnames(plot_dat)[14]<-"Assessment"
     for(varh in  c("stk_no","f")){
       # selh<-"kn0"
       # tsh<-"long"
+      #tsh<-"short"
       # varh<-"f"
       #varh<-"stk_no"
       # 
       
-      dataMedian <- plot_dat%>% 
+      dataMedian <- plot_dat%>%
         filter(var == varh,TS ==tsh)%>%
         group_by(LH,SEL,year,SR,AR,HD,Assessment)%>%
         summarise(MD = round(median(value),2))
       
       #which(dataMedian$MD==max(dataMedian$MD))
       #dataMedian[2459,]
-      her_mxy<-ceiling(max(dataMedian$MD[dataMedian$LH=="her"]))
-      her_mny<-floor(min(dataMedian$MD[dataMedian$LH=="her"]))
-      her_brks<-c(signif(her_mxy/3,1),(signif(her_mxy/3,1))*2,(signif(her_mxy/3,1))*3)
       
-      mon_mxy<-ceiling(max(dataMedian$MD[dataMedian$LH=="mon"]))
-      mon_mny<-floor(min(dataMedian$MD[dataMedian$LH=="mon"]))
-      mon_brks<-c(signif(mon_mxy/3,1),(signif(mon_mxy/3,1))*2,(signif(mon_mxy/3,1))*3)
-      
+      # 
+      # max(dataMedian$MD[dataMedian$LH==levels(plot_dat$LH)[1] & dataMedian$SEL=="kn0" ],na.rm=T)
+      # max(dataMedian$MD[dataMedian$LH==levels(plot_dat$LH)[1] & dataMedian$SEL=="logistic" ],na.rm=T)
+      # max(dataMedian$MD[dataMedian$LH==levels(plot_dat$LH)[1] & dataMedian$SEL=="dome" ],na.rm=T)
+      #   
+      #dataMedian <- dataMedian[dataMedian$Assessment!="\"S1\"[\"c\"]" & dataMedian$SEL !="dome",]
+     
+      selh<-"kn0"
+      tmpdat <- plot_dat %>%
+        filter(var == varh,SEL == selh,TS ==tsh)
       
  if(varh=="stk_no"){
     ylab <- "Stock numbers"
- }else{
-   ylab <- "Fishing mortality"}
-    
-      selh<-"kn0"
-    tmpdat <- plot_dat %>%
-      filter(var == varh,SEL == selh,TS ==tsh)
-   
-    
-p1<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
-
-  p1 <- p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+      tmp_dataMedian<- dataMedian %>%
+      filter(SEL==selh)
+    her_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_brks<-c(signif(her_mxy/3,2),(signif(her_mxy/3,2))*2,(signif(her_mxy/3,2))*3)
   
-p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+    
+    mon_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_brks<-c(signif(mon_mxy/3,2),(signif(mon_mxy/3,2))*2,(signif(mon_mxy/3,2))*3)
+    
+ }else{
+     her_brks<- mon_brks <- c(0.25,0.5,0.75,1)
+     ylab <- "Fishing mortality"}
+    
+p1<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
 
-  p2 <- p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p1 <- p1+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=her_brks)+xlab("Year")
+  
+p2<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+
+  p2 <- p2+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=mon_brks)+xlab("Year")
 
   selh<-"logistic"
   tmpdat <- plot_dat %>%
     filter(var == varh,SEL == selh,TS ==tsh)
   
-  p3<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  if(varh=="stk_no"){
+    ylab <- "Stock numbers"
+    tmp_dataMedian<- dataMedian %>%
+      filter(SEL==selh)
+    her_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_brks<-c(signif(her_mxy/3,2),(signif(her_mxy/3,2))*2,(signif(her_mxy/3,2))*3)
+    
+    
+    mon_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_brks<-c(signif(mon_mxy/3,2),(signif(mon_mxy/3,2))*2,(signif(mon_mxy/3,2))*3)
+    
+  }else{
+      her_brks<- mon_brks <- c(0.25,0.5,0.75,1)
+    ylab <- "Fishing mortality"}
   
-  p3 <- p3+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  p3<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p4<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p3 <- p3+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=her_brks)+xlab("Year")
   
-  p4 <- p4+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p4<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p4 <- p4+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=mon_brks)+xlab("Year")
   
   
   selh<-"dome"
   tmpdat <- plot_dat %>%
     filter(var == varh,SEL == selh,TS ==tsh, Assessment!="\"S1\"[\"c\"]")
   
-  p5<-ggplot(tmpdat[tmpdat$LH=="her",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+
+  if(varh=="stk_no"){
+    ylab <- "Stock numbers"
+    
+    dataMedian <- subset(dataMedian,dataMedian$Assessment!="\"S1\"[\"c\"]" & dataMedian$SEL =="dome"|dataMedian$SEL =="logistic"|dataMedian$SEL =="kn0")
+    
+    tmp_dataMedian<- dataMedian %>%
+      filter(SEL==selh)
+    her_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[2]],na.rm=T))
+    her_brks<-c(signif(her_mxy/3,2),(signif(her_mxy/3,2))*2,(signif(her_mxy/3,2))*3)
+    
+    
+    mon_mxy<-ceiling(max(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_mny<-floor(min(tmp_dataMedian$MD[tmp_dataMedian$LH==levels(plot_dat$LH)[1]],na.rm=T))
+    mon_brks<-c(signif(mon_mxy/3,2),(signif(mon_mxy/3,2))*2,(signif(mon_mxy/3,2))*3)
+    
+  }else{
+    
+        her_brks<- mon_brks <- c(0.25,0.5,0.75,1)
+    ylab <- "Fishing mortality"}
   
-  p5 <- p5+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(her_mny,her_mxy),breaks=her_brks)
+  p5<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[2],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
   
-  p6<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  p5 <- p5+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=her_brks)+xlab("Year")
   
-  p6 <- p6+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))#+scale_y_continuous(limit=c(mon_mny,mon_mxy),breaks=mon_brks)
+  p6<-ggplot(tmpdat[tmpdat$LH==levels(plot_dat$LH)[1],],aes(x=year,y=value, col= Assessment)) + facet_nested(SR+AR~LH+HD, labeller=label_both) #
+  
+  p6 <- p6+stat_summary(aes(y=rv,linetype="Real values"),col=1,size=1, fun=median, geom="line",alpha=1)+stat_summary(aes(group=Assessment,col=Assessment), fun=median, geom="line",alpha=0.9) + ylab(ylab)+theme_classic()+colScale+scale_linetype_manual("",values=c("Real values"="dotted"))+ guides(linetype = guide_legend(order = 2),col = guide_legend(order = 1))+scale_y_continuous(breaks=mon_brks)+xlab("Year")
   
   
   pp<-ggpubr::ggarrange(p2,p1,p4,p3,p6,p5, ncol=2, nrow=3, common.legend = TRUE, legend="bottom",labels = c("A", "B","C","D","E","F"))
@@ -238,6 +293,30 @@ p2<-ggplot(tmpdat[tmpdat$LH=="mon",],aes(x=year,y=value, col= Assessment)) + fac
   
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # 
