@@ -56,7 +56,7 @@ sce_ls$sel$mon$logistic
 sce <- expand.grid(lh = c("mon","her"), ts = c("short","long"), sel = c("kn0","logistic","dome"), ar =c ("nocor","0.6rho"), sr = c("recsd0.1","recsd0.4") )
 
 dim(sce)
- iters<- 100
+ iters<- 10
  timing<-0
  #adjust_for_sel <- TRUE
 cores=detectCores()
@@ -69,10 +69,12 @@ registerDoParallel(cl)
  st[1]<-Sys.time()
 
 #  #
- #select<- c(3,7)
+ #select<- c(3,7,11)
+ select<- c(4,8,12)
  
- #
- tmpres <- foreach(i=1:dim(sce)[1], .packages = (.packages())) %dopar% {#   ,.combine=cbind
+ 
+ #1:dim(sce)[1]
+ tmpres <- foreach(i=select, .packages = (.packages())) %dopar% {#   ,.combine=cbind
    set.seed(seedlist[i])
    lh<-sce$lh[i]
   stk_par<-sce_ls$lh[[lh]]
@@ -258,14 +260,14 @@ registerDoParallel(cl)
  
  #save(tmpres,sce,file="res_10iters_allsce.RData")
 
-  save(tmpres,sce,file="res_100iters_allsce_new_2.RData")
+  #save(tmpres,sce,file="res_100iters_allsce_new_2.RData")
 
+ save(tmpres,sce,file="res_10iters_sce4_8_12_n_2.RData")
  
  
  
- 
-  #save(tmpres,sce,file="res_10iters_sce3_7_n_2.RData")
-  # save(tmpres,sce,file="res_10iters_sce4_8_n.RData")
+  #save(tmpres,sce,file="res_100iters_sce3_7_11_n_2.RData")
+   #save(tmpres,sce,file="res_100iters_sce4_8_12_n.RData")
  #
  #
  #

@@ -86,6 +86,53 @@ caterror <- function(x){
 }
 
 
+catlowerror <- function(x){
+  stk <- x$stk
+  idx<- x$idx
+  eps_c <- FLQuant(rlnorm(n = prod(dim(stk)), sdlog = 0.0001),
+                   dim = dim(stk), dimnames = dimnames(landings.n(stk)))
+  catch.n(idx) <- catch.n(stk) * eps_c
+  catch.wt(idx) <- catch.wt(stk)
+  index.q(idx) <- stock.n(stk)*eps_c # just use these slots for storage 
+  #effort(idx) <- quantSums(catch.n(idx)*catch.wt(stk))
+  x$idx<-idx
+  x$stk<-stk
+  
+  pr_range <-2:(stk@range["max"]+1)
+  f_range <- 1:(stk@range["max"]+1)
+  no.years <-max(an(dimnames(stk)$year))
+  tp <-an(dimnames(stk)$year)
+  iters<-dim(stk)[6]
+  
+  mwts_mat<- array(NA,dim = c(3,no.years,iters))
+  
+  Y<-c(quantSums(catch.wt(stk)[1,]*catch.n(idx)[1,])/quantSums(catch.n(idx)[1,]))
+  Z<-c(quantSums(catch.wt(stk)[pr_range,]*catch.n(idx)[pr_range,])/quantSums(catch.n(idx)[pr_range,]))
+  XX<-c(quantSums(catch.wt(stk)[f_range,]*catch.n(idx)[f_range,])/quantSums(catch.n(idx)[f_range,]))
+  
+  mwts_mat[1,tp,1:iters]<-Y
+  mwts_mat[2,tp,1:iters]<-Z
+  mwts_mat[3,tp,1:iters]<-XX
+  
+  x$nocut$mwts <-mwts_mat
+  
+  mwts_mat<- array(NA,dim = c(3,no.years,iters))
+  
+  Y<-c(quantSums(catch.wt(stk)[1,]*index.q(idx)[1,])/quantSums(index.q(idx)[1,]))
+  Z<-c(quantSums(catch.wt(stk)[pr_range,]*index.q(idx)[pr_range,])/quantSums(index.q(idx)[pr_range,]))
+  XX<-c(quantSums(catch.wt(stk)[f_range,]*index.q(idx)[f_range,])/quantSums(index.q(idx)[f_range,]))
+  
+  mwts_mat[1,tp,1:iters]<-Y
+  mwts_mat[2,tp,1:iters]<-Z
+  mwts_mat[3,tp,1:iters]<-XX
+  
+  x$nocut$mwts_nosel <-mwts_mat
+  
+  
+  return(x)
+}
+
+
 
 caterror_cut <- function(x){
   stk <- x$stk
@@ -576,8 +623,8 @@ assessments<- function(xx){
   }#end of iters loop
   #xx$idx<-qapply(idx, iterMedians)
   #xx$stk<-qapply(stk, iterMedians)
-  xx$idx<-NA
-  xx$stk<-NA
+  #xx$idx<-NA
+  #xx$stk<-NA
   
   
   return(xx)
