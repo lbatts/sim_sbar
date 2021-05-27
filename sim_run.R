@@ -25,6 +25,16 @@ setwd("/home/luke/Documents/sim_sbar")
 #load function to create stocks
 source("par_setup.R")
 #source("funs2.R")
+ls()
+par(mfrow=c(2,1))
+length<-vonB(0:8,hpar)
+weight<-hpar["a"]*length^hpar["b"]
+plot(weight~length,type="o")
+
+length<-vonB(0:20,mpar)
+weight<-mpar["a"]*length^mpar["b"]
+plot(weight~length,type="o")
+
 
 #par(mfrow = c(2,2))
 # lapply(sce_ls$sel$her[2:3],function(x){

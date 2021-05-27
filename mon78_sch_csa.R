@@ -1,3 +1,9 @@
+#===================================
+# Assessments of monkfish stock
+# Author : LB
+#Distributed under GPL-3 or later
+#April 2021
+#===================================
 library(dplyr)
 library(tidyr)
 #install.packages("FLa4a",repos="http://flr-project.org/R",dependencies=TRUE)
@@ -5,6 +11,7 @@ library(tidyr)
 library(FLCore)
 #install.packages('patchwork')
 #library(patchwork)
+#install_github("lbatts/sbar")
 library(sbar)
 rm(list=ls())
 #setwd("C:/Users/LukeB/Documents/sim_sbar")
@@ -36,12 +43,12 @@ index(tun.sel$IE_MONKSURVEY)[1:5,]-index(tun$IE_MONKSURVEY)[2:6,]
 index(tun.sel$`SP-PORC`)[1:5,]-index(tun$`SP-PORC`)[3:7,]
 
 
-
+years<-ac(2003:2018)
 
 no.years<-length(years)
 starty <- 2003-1986+1
 endy <-starty + no.years-1
-years<-ac(2003:2018)
+
 ###plot mean weights etc
 
 catchkg1<-colSums(catch.n(a4afit)[,years]*catch.wt(a4afit)[,years],na.rm=T)
@@ -281,7 +288,7 @@ check<-fit_tmb(obj3) # cant use when using lower and upper bounds
 check$Convergence_check
 check$max_gradient
 
-check3<-Check_Identifiable(obj3) # 
+check3<-check_estimability(obj3) # 
 
 #obs.rep <- 
 obs.srep3 <- summary(TMB::sdreport(obj3))
@@ -312,7 +319,7 @@ check<-fit_tmb(obj4) # cant use when using lower and upper bounds
 check$Convergence_check
 check$max_gradient
 
-check4<-Check_Identifiable(obj4) # 
+check4<-check_estimability(obj4) # 
 
 #obs.rep <- 
 obs.srep4 <- summary(TMB::sdreport(obj4))
@@ -482,7 +489,9 @@ which(truebio ==max(truebio))
 
 
 
+ls()
 
+#save(ubw_mean_wts,ubw_rho,ubw_W, catch_kg1,obs,obj4,obj3,opt3,opt4,file="mon_78_res4sim.RData")
 #save(obs.srep3,obs.srep4,f,truebio,trueno,trueprevex,trueprevexno,truerec,truerecno,catch_kg1,obs,file="mon78_schnute_res.Rdata")
 
 B0
@@ -619,4 +628,4 @@ lines(y=(truef),x=years,col=2,lty=2)
 
 #redo!!!
 #save(catch.no,obs.srep,obs,file="mon78_csa_res.RData")
-
+#save(obj,opt,obs,catch.no,file="mon_78_res4sim_csa.RData")

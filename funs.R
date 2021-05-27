@@ -85,7 +85,7 @@ caterror <- function(x){
   return(x)
 }
 
-
+#x<-res[[3]]
 catlowerror <- function(x){
   stk <- x$stk
   idx<- x$idx
@@ -181,6 +181,10 @@ assessments<- function(xx){
   tp <-an(dimnames(stk)$year)
   iters<-dim(stk)[6]
   mort<-mean(m(stk),na.rm=T)
+  
+  st_cthsigma <- 0.1
+  st_survsig <- 0.1
+  
   waa <- an(iterMeans(catch.wt(stk))[,"1"]) # #according to equation at the start of Schnute
   #fit <- lm(w[2:11] ~ w[1:10])# #according to equation at the start of Schnute
   fit_waa <- lm(waa[2:ceiling(max(f_range)/2)] ~ waa[1:(ceiling(max(f_range)/2)-1)])
@@ -314,7 +318,7 @@ assessments<- function(xx){
       #=====================================
       print("bf 2 sch")
       obj2<-schnute_obserror(version=2,catchkg = catch_kg1, indiceskg = obs, ts = 0, mwts = mean_wts, tsp = 0, rho = rho1, W = W1 , start_q = 1e-08, start_indexsigma = 0.1,
-                             start_sigma = sigma_st, start_f_calc = 0.5, start_catchsigma = 0.1,
+                             start_sigma = sigma_st, start_f_calc = 0.5, start_catchsigma = st_cthsigma,
                              fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE,
                              fix_catchsigma = T,ind_l_wt=1)
       print("af 2 sch")
@@ -469,7 +473,7 @@ assessments<- function(xx){
       #=====================================
       print("bf 2.2 sch")
       obj2.2<-schnute_obserror(version=2,catchkg = catch_kg1, indiceskg = obs, ts = 0, mwts = mean_wts, tsp = 0, rho = rho, W = W ,ind_l_wt=1, start_q = 1e-08, start_indexsigma = 0.1,
-                               start_sigma = sigma_st, start_f_calc = 0.5, start_catchsigma = 0.1,
+                               start_sigma = sigma_st, start_f_calc = 0.5, start_catchsigma = st_cthsigma,
                                fix_sigma = TRUE, fix_B0 = FALSE, fix_indexsigma = FALSE,
                                fix_catchsigma = T)
       print("af 2.2 sch")
@@ -555,7 +559,7 @@ assessments<- function(xx){
     obs[2,]<-colSums(index(idx)[pr_range,])
     
     #args(csa)
-    obj3<- csa(catch_n = catch.no, indices_no = obs, indices_att = att, ts = 0 , selrec = selrec, start_q = 1e-8, start_surveycv = 0.1, start_catchcv = 0.1, start_nmort = mort, start_f_calc = 0.5,fix_nmort = T, fix_prec0 = F, fix_surveycv = F, fix_catchcv = T)
+    obj3<- csa(catch_n = catch.no, indices_no = obs, indices_att = att, ts = 0 , selrec = selrec, start_q = 1e-8, start_surveycv = st_survsig, start_catchcv = st_cthsigma, start_nmort = mort, start_f_calc = 0.5,fix_nmort = T, fix_prec0 = F, fix_surveycv = F, fix_catchcv = T)
     
     if(!is.na(obj3$fn())){
       
@@ -623,8 +627,8 @@ assessments<- function(xx){
   }#end of iters loop
   #xx$idx<-qapply(idx, iterMedians)
   #xx$stk<-qapply(stk, iterMedians)
-  #xx$idx<-NA
-  #xx$stk<-NA
+  xx$idx<-NA
+  xx$stk<-NA
   
   
   return(xx)

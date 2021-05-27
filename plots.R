@@ -1,12 +1,18 @@
-
+#===================================
+# Plotting anglerfish assessment results
+# Author : LB
+#Distributed under GPL-3 or later
+#May 2021
+#===================================
 
 
 ##====================================================================================
 #plotting index and catch
 library(ggplot2)
 rm(list=ls())
-setwd("C:/Users/LukeB/Documents/sim_sbar")
-load("mon78_schnute_res.RData")
+#setwd("C:/Users/LukeB/Documents/sim_sbar")
+setwd("/home/luke/Documents/sim_sbar")
+load("mon78_schnute_res.Rdata")
 years<-2003:2018
 subgg<-obs.srep3[rownames(obs.srep3)=="logpred_survey"|rownames(obs.srep3)=="lnc",]#,"phat","rhat","f_calc"),]
 datgg<-data.frame(param=rownames(subgg),lnest=subgg[,1],est=exp(subgg[,1]),lnse=subgg[,2],upper=NA,lower=NA)
@@ -95,7 +101,7 @@ subgg<-obs.srep[rownames(obs.srep)=="logpred_survey"|rownames(obs.srep)=="lnc",]
   #comparison
   rm(list=ls())
 library(ggplot2)
-  load("mon78_schnute_res.RData")
+  load("mon78_schnute_res.Rdata")
   
   subgg<-obs.srep4[rownames(obs.srep4)=="lnN"|rownames(obs.srep4)=="logf_calc"|rownames(obs.srep4)=="lnPR"|rownames(obs.srep4)=="lnR",]#,"phat","rhat","f_calc"),]
   
@@ -197,6 +203,8 @@ library(ggplot2)
   p2<-ggplot(data=datgg[datgg$param==levels(datgg$param)[1],], aes(x=year, y=est))+ geom_ribbon(aes(ymin=lower, ymax=upper),fill="lightgrey",color="lightgrey")+geom_line(aes(colour="Age-based model estimates"),size=s) +geom_point(aes(y = a4a, col= "Assessment model estimates"),size=t,shape=8)+ geom_line()+geom_line(aes(y = a4a, col= "Assessment model estimates"),size=s,linetype="dashed")+ scale_colour_manual(name='', values=c('Age-based model estimates'='black', 'Assessment model estimates'='black'))+scale_fill_manual(name='', values=c('Age-based model estimates'=1, 'Assessment model estimates'=NA))+guides(colour = guide_legend(override.aes = list(linetype=c(2,1), shape=c(8,NA ))))+theme(text = element_text(size=20))+facet_grid(param~ver,scales="free_y",labeller = label_parsed)
   
   p2<-p2+theme_bw()+theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(),strip.text.y = element_text(size=8), axis.line = element_line(colour = "black"),strip.background =element_rect(color="black",fill="lightgrey"))+labs(y="", x="Year")
+  
+  p2
   
   pp<-ggpubr::ggarrange(p1,p2, ncol=2, nrow=1, common.legend = TRUE, legend="bottom",labels = c("A", "B"))
   

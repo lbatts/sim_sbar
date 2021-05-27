@@ -1,4 +1,9 @@
-
+#===================================
+# Fishlife for steepness pars
+# Author : LB
+#Distributed under GPL-3 or later
+#March 2021
+#===================================
 #NOTE~~=====
 #This needs to be run in R version 4.
 #devtools::install_github("james-thorson/FishLife")

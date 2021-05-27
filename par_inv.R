@@ -468,9 +468,9 @@ print(xtable(tmp,digits=c(1,1,1,rep(2,18)),include.rownames=FALSE))
 # print(xtable(tt[,,1],digits=c(1,3,3,3),include.rownames=FALSE))
 
 
-
 plot_dat<-f_dat %>%
-  filter(filter %in% c("realistic_estimates"))
+  filter(filter %in% c("realistic_estimates") )# sce_id %in% c(c(3,4,7,8,11,12))
+#save(plot_dat,file="limsce_runs.RData")
 
 library(ggplot2)
 library(ggh4x)
